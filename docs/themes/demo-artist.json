@@ -1,0 +1,100 @@
+{
+ "id": "demo-artist",
+ "version": 1,
+ "artist": {
+  "name": "Demo Artist (placeholder)",
+  "bio": "Placeholder bio for testing the theme loader. Not a real artist.",
+  "links": [
+   "https://example.com/demo-artist"
+  ]
+ },
+ "tokens": {
+  "--color-accent": "#D9B45A",
+  "--color-accent-contrast": "#14110F",
+  "--el-core": "#FFB43C",
+  "--el-intensity": 0.6,
+  "--font-display": "Space Grotesk",
+  "--el-speed": 0.8
+ },
+ "elements": [
+  "embers"
+ ],
+ "slots": {
+  "profile": {
+   "frame": {
+    "src": "assets/themes/demo-artist/frame_placeholder.svg",
+    "slice": 24,
+    "max_kb": 50
+   },
+   "background_texture": {
+    "src": "assets/themes/demo-artist/texture_placeholder.png",
+    "opacity": 0.15
+   },
+   "accent_color": "#D9B45A",
+   "header_art": {
+    "src": "assets/themes/demo-artist/header_placeholder.png",
+    "alt": "Placeholder header"
+   },
+   "motion_accent": {
+    "element": "embers",
+    "intensity": 0.3
+   }
+  },
+  "selling": {
+   "frame": {
+    "width": 6,
+    "style": "solid",
+    "radius": 0
+   },
+   "accent_color": "#D9B45A"
+  }
+ },
+ "profile": {
+  "banner": {
+   "src": "assets/themes/demo-artist/banner_placeholder.webp",
+   "alt": "Placeholder banner"
+  },
+  "avatar_frame": {
+   "src": "assets/themes/demo-artist/avatar_frame_placeholder.svg"
+  },
+  "panels": [
+   {
+    "type": "about",
+    "title": "About",
+    "text": "Placeholder about text."
+   },
+   {
+    "type": "links",
+    "title": "Find me",
+    "link": {
+     "url": "https://example.com/demo-artist/social",
+     "label": "Social",
+     "kind": "social"
+    }
+   },
+   {
+    "type": "commissions",
+    "title": "Commissions",
+    "text": "Placeholder.",
+    "link": {
+     "url": "https://example.com/demo-artist/commissions",
+     "label": "Commissions",
+     "kind": "commissions"
+    }
+   },
+   {
+    "type": "process_gallery",
+    "title": "Work in progress",
+    "image": {
+     "src": "assets/themes/demo-artist/panel_wip_placeholder.png",
+     "alt": "Placeholder WIP",
+     "height": 240
+    }
+   },
+   {
+    "type": "featured_designs",
+    "title": "Designs on Tempered Tees"
+   }
+  ]
+ }
+}
