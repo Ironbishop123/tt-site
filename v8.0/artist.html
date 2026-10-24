@@ -37,15 +37,32 @@
       <rect x="0.5" y="0.5" width="99" height="99" pathLength="100" rx="1"></rect>
     </svg>
   </template>
-  <div class="banner" data-slot="banner"></div>
+  <div class="banner" data-slot="banner"><p class="sample-badge">Sample</p></div>
   <div class="wrap profile-body">
     <div class="pf-top">
       <div class="avatar" data-slot="avatar-frame"></div>
-      <h1 data-field="name"></h1>
+      <h1 data-field="name">Artist name</h1>
     </div>
-    <p class="pf-sub" data-field="bio"></p>
+    <p class="pf-sub" data-field="bio">Illustrator based in the US. Pencil, ink, one spot of colour.</p>
     <p class="royalty">Earns a royalty on each paid sale, under our artist agreement.</p>
-    <div class="panels" data-slot="panels"></div>
+    <div class="panels" data-slot="panels">
+      <div class="panel" data-type="about">
+        <div class="icon"></div>
+        <div class="pb"><h3>About</h3><p>Illustrator based in the US. Pencil, ink, one spot of colour.</p></div>
+      </div>
+      <div class="panel" data-type="links">
+        <div class="icon"></div>
+        <div class="pb"><h3>Links</h3><p>Portfolio and social links go here when the artist adds them.</p></div>
+      </div>
+      <div class="panel" data-type="commissions">
+        <div class="icon"></div>
+        <div class="pb"><h3>Commissions</h3></div>
+      </div>
+      <div class="panel" data-type="process_gallery">
+        <div class="icon"></div>
+        <div class="pb"><h3>Process</h3><p>Pencil sketch, inked, scanned, then coloured flat for DTG.</p></div>
+      </div>
+    </div>
     <article class="solo">
       <div class="solo-stage" data-slot="stage"></div>
       <!-- Placeholder — catalog design is not loaded. -->

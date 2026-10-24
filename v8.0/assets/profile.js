@@ -175,7 +175,10 @@
 
     var banner = root.querySelector("[data-slot=banner]");
     if (banner) {
+      var sampleBadge = banner.querySelector(".sample-badge");
+      if (sampleBadge) sampleBadge.remove();
       while (banner.firstChild) banner.removeChild(banner.firstChild);
+      if (sampleBadge) banner.appendChild(sampleBadge);
       var slots = theme.slots && theme.slots.profile ? theme.slots.profile : {};
       var texture = slots.background_texture;
       var textureSrc = texture ? asset(texture.src, ["png", "webp"]) : "";
@@ -192,6 +195,8 @@
         pic.className = "banner-art";
         pic.setAttribute("src", themeUrl(bannerSrc));
         pic.setAttribute("alt", clip(profile.banner.alt, CAPS.alt));
+        pic.setAttribute("width", "2400");
+        pic.setAttribute("height", "600");
         banner.appendChild(pic);
       }
     }
@@ -204,6 +209,8 @@
         var frame = document.createElement("img");
         frame.setAttribute("src", themeUrl(frameSrc));
         frame.setAttribute("alt", "");
+        frame.setAttribute("width", "800");
+        frame.setAttribute("height", "800");
         avatar.appendChild(frame);
       }
     }
@@ -240,7 +247,7 @@
       panels: [
         { type: "about", title: "About", text: "Illustrator based in the US. Pencil, ink, one spot of colour." },
         { type: "links", title: "Links", text: "Portfolio and social links go here when the artist adds them." },
-        { type: "commissions", title: "Commissions", text: "Open for 2 slots a month." },
+        { type: "commissions", title: "Commissions" },
         { type: "process_gallery", title: "Process", text: "Pencil sketch, inked, scanned, then coloured flat for DTG." },
         { type: "featured_designs", title: "Ember Crest" }
       ]

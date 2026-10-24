@@ -22,10 +22,8 @@ export const MOTION = Object.freeze({
   flickerAmp: Object.freeze([0.06, 0.034, 0.02]),
 });
 
+/* Color ramp stays the v2 palette in PALETTE. Only motion scale comes from --el-*. */
 const CSS_VARS = Object.freeze({
-  orange: '--el-mid',
-  yellow: '--el-hot',
-  white: '--el-core',
   intensity: '--el-intensity',
   speed: '--el-speed',
 });
