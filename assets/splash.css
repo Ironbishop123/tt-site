@@ -1,0 +1,113 @@
+@font-face{font-family:"Space Grotesk";src:url(fonts/SpaceGrotesk-subset.woff2) format("woff2");font-weight:300 700;font-display:swap}
+@font-face{font-family:"Inter";src:url(fonts/Inter-subset.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{color-scheme:dark;--ease-out:cubic-bezier(.23,1,.32,1);--ink:#16181C;--ink3:#0F1114;--card:#22252B;--line2:#7A838C;--text:#E9ECEF;--muted:#AEB5BC;--link:#9FB5D8;--straw:#D9B45A;--heat:#E8642C;--hot:#FFB43C;--btn-text:#14110F}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:var(--ink3)}body{color:var(--text);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--link)}::selection{background:rgba(217,180,90,.35);color:#fff}.field{caret-color:var(--straw)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+canvas.embers{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.fire{position:absolute;left:0;right:0;bottom:0;height:max(190px,26vw)!important;background:url(fire_band_final.webp) center bottom/cover no-repeat;pointer-events:none;transform-origin:50% 100%}
+/* headline heat: dark metal -> orange glow -> settled warm white (once) */
+.wd{white-space:nowrap}.ch{display:inline-block}
+.anim .ch{animation:heat 1.6s cubic-bezier(.3,.6,.3,1) both}
+@keyframes heat{0%{color:#2E3136;text-shadow:none}45%{color:#FFB43C;text-shadow:0 0 18px rgba(232,100,44,.9),0 0 42px rgba(232,100,44,.5)}100%{color:var(--final,#F3EEE6);text-shadow:0 0 24px rgba(232,100,44,.28)}}
+.rm .ch{color:var(--final,#F3EEE6);text-shadow:0 0 24px rgba(232,100,44,.28)}
+/* fire flicker + CTA glow pulse (subtle) */
+.anim .fire{animation:flick 3.4s ease-in-out infinite alternate}
+@keyframes flick{0%{opacity:.92;transform:scaleY(.985)}35%{opacity:1;transform:scaleY(1.01)}70%{opacity:.95;transform:scaleY(1)}100%{opacity:1;transform:scaleY(1.02)}}
+.btn{position:relative;height:52px;border:0;border-radius:12px;background:var(--heat);color:var(--btn-text);font:700 18px "Space Grotesk";padding:0 24px;white-space:nowrap;cursor:pointer;transition:transform 160ms var(--ease-out),background-color 150ms ease,color 150ms ease,box-shadow 150ms ease}
+.btn::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 18px rgba(232,100,44,.4);opacity:0;pointer-events:none}
+.btn:active:not(.done){transform:scale(.97)}
+.btn:focus-visible,.artists:focus-visible,.brand:focus-visible,a:focus-visible{outline:3px solid var(--straw);outline-offset:3px;border-radius:4px}
+.btn .ck{display:inline-block;width:18px;height:18px;vertical-align:-3px;margin-right:6px}
+@media (hover:hover) and (pointer:fine){.btn:not(.done):hover{background-color:#F0723A}.artists span{display:inline-block;transition:transform 200ms var(--ease-out)}.artists:hover span{transform:translateX(4px)}.snd{transition:border-color 150ms ease,color 150ms ease}.snd:hover{border-color:#8E969E;color:#fff}a:hover{text-decoration-thickness:2px}}
+.anim .btn:not(.done)::after{animation:pulse 3.2s ease-in-out 2.6s 3}
+@keyframes pulse{0%,100%{opacity:0}50%{opacity:1}}
+.btn.done{transition:background-color .6s ease,color .6s ease,box-shadow .6s ease;background:var(--card);color:var(--text);box-shadow:inset 0 0 0 2px var(--line2);cursor:default}
+.field{height:52px;border-radius:12px;border:2px solid var(--line2);background:var(--card);color:var(--text);font:500 18px Inter;padding:0 16px;min-width:0}
+.field::placeholder{color:#8E969E}.field:focus{outline:3px solid var(--straw);outline-offset:2px}
+.field:-webkit-autofill{-webkit-text-fill-color:#E9ECEF;box-shadow:0 0 0 100px #22252B inset;caret-color:#D9B45A}
+.field[aria-invalid=true]{border-color:#FF8A6B}
+.lbl{display:block;font:600 14px Inter;color:var(--muted);margin-bottom:8px}
+.micro{font:500 14px/1.4 Inter;color:var(--muted);margin-top:10px}
+.micro a{display:inline-block;padding:13px 6px;margin:-13px 0}
+.msg{font:600 14px Inter;margin-top:6px;min-height:22px}.msg:empty{min-height:0;margin-top:0}.msg.ok{color:#B9E4C9}.msg.err{color:#FFB09A}
+footer{position:relative;background:#0B0C0E;padding:10px 24px 14px;font:500 14px/1.5 Inter;color:var(--muted)}
+.foot{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;column-gap:10px}.foot i{font-style:normal;color:#8E969E}
+@media (max-width:600px){.foot{flex-direction:column;row-gap:0}.foot i{display:none}.foot span{line-height:1.7}}.foot span{white-space:nowrap}
+footer a{display:inline-flex;align-items:center;min-height:44px}
+.draft{white-space:nowrap;font:600 12px Inter;color:var(--muted);border:1px solid var(--line2);border-radius:999px;padding:4px 10px;letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.btn:active:not(.done),.artists:hover span{transform:none}}
+/* ===== v7 page styles (moved from the inline <style> so the CSP can stay style-src 'self') ===== */
+/* Concept B: editorial / asymmetric, big type left, shirt mostly hidden in shadow at right */
+.hero{position:relative;min-height:100svh;overflow:hidden;background:radial-gradient(ellipse 40% 50% at 84% 46%,rgba(232,100,44,.16),transparent 70%),linear-gradient(100deg,#0B0C0E 0%,#121418 55%,#17130F 100%)}
+header{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:28px 64px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;min-height:44px}.brand img{display:block;width:36px;height:36px}.brand span{font:700 14px "Space Grotesk";letter-spacing:.28em;color:#E9DCC0}
+.shirt{position:absolute;z-index:1;right:3vw;top:11%;width:min(44vw,660px);aspect-ratio:736/576}
+.shirt img{display:block;width:100%;height:100%;filter:saturate(1.05)}
+/* v7.2 hero_v1.1 (Creative README, exact): ember backlight; .shirt is already position:absolute (a containing block), so .hero-slot keeps it */
+.hero-slot{aspect-ratio:736/576}
+.hero-slot::before{content:"";position:absolute;inset:-15%;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 50% 50% at 50% 52%,
+    rgb(232 100 44 / .55) 0%, rgb(184 115 51 / .30) 45%,
+    rgb(58 22 6 / .18) 70%, rgb(15 17 20 / 0) 100%);}
+.hero-slot picture,.hero-slot img{position:relative;z-index:1;}
+
+.anim .shirt{animation:edge 4s ease-out .3s both}
+@keyframes edge{0%{opacity:0;transform:translateX(30px)}100%{opacity:1;transform:none}}
+main{position:relative;z-index:2;max-width:900px;padding:0 64px 330px}
+h1{font:700 120px/.92 "Space Grotesk";letter-spacing:-.035em;margin-top:4vh;--final:#F3EEE6}
+.sub{text-wrap:balance;font:500 26px/1.35 Inter;color:#C9CED3;margin-top:28px;max-width:30ch}
+form{margin-top:48px;max-width:560px}
+.row{display:flex;gap:10px}.row .field{flex:1}
+.artists{display:inline-block;padding:11px 0 9px;line-height:1.35;min-height:44px;margin-top:26px;color:var(--text);font:600 18px "Space Grotesk";text-decoration:none;border-bottom:1.5px solid var(--straw)}
+.artists span{color:var(--straw)}
+.fire{height:max(220px,min(30vw,34svh))!important;-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent 100%);mask-image:linear-gradient(180deg,#000 82%,transparent 100%);background-image:url(fire_band_final.webp)!important}
+@media (max-width:1100px){h1{font-size:96px}}
+@media (max-width:900px){header{padding:20px 32px}main{padding:4vh 32px 260px}h1{font-size:84px}.shirt{top:64px;left:calc(50% - min(310px,41vw));right:auto;width:min(620px,82vw);-webkit-mask-image:linear-gradient(180deg,#000 45%,rgba(0,0,0,.55) 62%,transparent 80%);mask-image:linear-gradient(180deg,#000 45%,rgba(0,0,0,.55) 62%,transparent 80%)}h1{margin-top:250px!important}.fire{height:240px}}
+@media (max-width:600px){header{padding:16px 20px}header img{width:44px;height:44px}
+ .shirt{top:52px;left:calc(50% - 190px);right:auto;width:380px;-webkit-mask-image:linear-gradient(180deg,#000 85%,transparent 100%);mask-image:linear-gradient(180deg,#000 85%,transparent 100%)}
+ /* v7.2.1 (Creative, mobile only): stronger ember glow (.55/.30/.18 -> .65/.36/.22; positions, ellipse, colours unchanged); hero fade 85% -> 100% of the slot */
+ .hero-slot::before{background:radial-gradient(ellipse 50% 50% at 50% 52%,rgb(232 100 44 / .65) 0%, rgb(184 115 51 / .36) 45%,rgb(58 22 6 / .22) 70%, rgb(15 17 20 / 0) 100%)}
+ main{padding:24px 20px 200px}
+ h1{font-size:58px;margin-top:150px!important}.sub{font-size:19px;margin-top:18px}form{margin-top:30px}.row{flex-direction:column}.row .field{flex:none;width:100%}.btn{width:100%}.fire{height:220px!important}.dl{display:none}.brand span{font-size:12px;letter-spacing:.18em}}
+@media (max-width:380px){h1{font-size:52px}.artists{font-size:15px;gap:6px}}
+@media (max-width:340px){h1{font-size:46px}}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(180deg,transparent,rgba(58,18,8,.55) 60%,#2A0E07);pointer-events:none;z-index:0}
+.help{font:500 14px/1.4 Inter;color:var(--muted);margin-top:6px}
+footer{background:linear-gradient(180deg,#2A0E07,#140A07 45%,#0B0C0E)!important}
+.hr{display:flex;align-items:center;gap:14px}
+.snd{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid #5E656C;background:rgba(15,17,20,.7);color:#E9ECEF;font:600 14px Inter;cursor:pointer}
+.snd .w{opacity:.35}.snd[aria-pressed=true]{border-color:var(--straw);color:#F3E3B8}.snd[aria-pressed=true] .w{opacity:1}
+.snd:focus-visible{outline:3px solid var(--straw);outline-offset:2px}
+@media (max-width:600px){.brand{min-width:44px;gap:8px}.hr{gap:8px}.snd{padding:0 12px;font-size:14px}}
+/* v7 */
+.snd .x{opacity:.9}.snd[aria-pressed=true] .x{display:none}
+.artists .nw{white-space:nowrap;color:inherit}.artists .nw span{color:var(--straw)}
+@media (min-width:1100px){.shirt{right:64px}}
+@media (min-width:1600px){h1{font-size:clamp(120px,6.6vw,156px);margin-top:3vh}main{max-width:1100px}.sub{font-size:30px;max-width:44ch;margin-top:24px}form{max-width:640px;margin-top:40px}.shirt{width:min(40vw,760px);top:13%}.fire{height:max(220px,min(30vw,26svh))!important}}
+@media (min-width:601px) and (max-width:900px){.fire{height:max(240px,min(34svh,330px))!important}main{padding-bottom:300px}}
+@media (max-width:600px) and (max-height:700px){h1{margin-top:120px!important}.shirt{top:40px}}
+@media (max-width:600px){.snd{width:44px;padding:0;justify-content:center}.snd .sl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.brand span{white-space:nowrap}.artists{text-wrap:balance}}
+@media (max-width:380px){.artists{font-size:15px}.micro a{padding:13px 0}.brand span{font-size:11px;letter-spacing:.14em}}
+
+/* ===== Forge code delta (no change to the v7 static look) ===== */
+html{-webkit-tap-highlight-color:transparent}a,button{touch-action:manipulation}button{-webkit-user-select:none;user-select:none}
+.hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+.msg:focus{outline:none}
+.snd.is-loading{cursor:progress}.snd.is-failed{border-color:#FFB09A;color:#FFB09A}
+.btn[disabled]:not(.done){cursor:progress}
+/* Short landscape (Flip unfolded sideways, phones in landscape): headline + form above the fold. Portrait/cover never match. */
+@media (orientation:landscape) and (max-height:520px){
+header{padding:10px 24px!important}
+.hero{min-height:100vh;min-height:100dvh}
+main{max-width:min(60vw,620px);padding:4px 24px 72px!important}
+h1{font-size:clamp(30px,10.5vh,60px);font-size:clamp(30px,10.5dvh,60px);margin-top:0!important}
+.sub{margin-top:6px!important;font-size:15px!important}
+.alert{margin-top:10px!important}
+.shirt{top:56px!important;left:auto!important;right:3vw!important;width:min(38vw,calc(70vh*736/576))!important;width:min(38vw,calc(70dvh*736/576))!important;-webkit-mask-image:none!important;mask-image:none!important}
+.fire{height:64px!important}
+.hero::after{height:60px}
+}
+/* v7.2.3: form removed; the artists link follows the sub line directly */
+.sub+.artists{margin-top:36px}
