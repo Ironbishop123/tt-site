@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Forge fire presets · Tempered Tees</title>
+<script type="module" src="assets/forge-elements/fire.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0F1114;
+    color: #E9ECEF;
+    font: 500 16px/1.4 Inter, system-ui, sans-serif;
+  }
+  header { padding: 22px 28px 8px; max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0; font: 700 28px/1.1 "Space Grotesk", system-ui, sans-serif; letter-spacing: -.03em; }
+  header p { margin: 8px 0 0; color: #AEB5BC; max-width: 62ch; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px 28px 32px; display: grid; gap: 14px; }
+  .stage {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+      radial-gradient(ellipse 40% 50% at 84% 42%, rgba(232,100,44,.16), transparent 70%),
+      linear-gradient(100deg, #0B0C0E 0%, #121418 55%, #17130F 100%);
+  }
+  .stage h2 { position: relative; z-index: 1; margin: 0; padding: 22px 24px; font: 600 13px/1 system-ui, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: #D9B45A; }
+  .stage tt-fire {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
+  }
+  .row { display: grid; grid-template-columns: 1.15fr .9fr .8fr 1fr; gap: 14px; }
+  .panel {
+    position: relative;
+    min-height: 230px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #171A1F;
+    border: 1px solid #2A2E34;
+  }
+  .panel h2 { margin: 0; padding: 16px 16px 0; font: 600 13px/1 system-ui, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: #D9B45A; }
+  .panel .note { margin: 6px 16px 0; color: #8E969E; font-size: 13px; }
+  .panel.edge tt-fire { position: absolute; left: 0; right: 0; bottom: 0; }
+  .panel.side tt-fire { position: absolute; top: 0; bottom: 0; left: 0; }
+  .panel.side h2, .panel.side .note { padding-left: 72px; }
+  .panel.accent .flames {
+    position: absolute; left: 0; right: 0; bottom: 12px;
+    display: flex; justify-content: center; align-items: flex-end; gap: 18px;
+  }
+  .panel.accent tt-fire { position: relative; }
+  .panel.glow .card {
+    position: relative;
+    z-index: 1;
+    margin: 64px 22px 22px;
+    padding: 22px 18px;
+    border-radius: 14px;
+    background: #121418;
+    border: 1px solid #2A2E34;
+  }
+  .panel.glow tt-fire { position: absolute; left: 10px; right: 10px; bottom: 8px; }
+  @media (max-width: 800px) {
+    header, main { padding-left: 16px; padding-right: 16px; }
+    h1 { font-size: 22px; }
+    .stage { height: 210px; }
+    .row { grid-template-columns: 1fr 1fr; }
+    .panel { min-height: 180px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Forge fire</h1>
+  <p>One engine, four presets. They share the palette and the motion. Only size, intensity, and shape change.</p>
+</header>
+<main>
+  <section class="stage" aria-label="band">
+    <h2>band</h2>
+    <tt-fire preset="band" height="230" direction="up"></tt-fire>
+  </section>
+  <div class="row">
+    <section class="panel edge" aria-label="edge">
+      <h2>edge</h2>
+      <p class="note">Lip along the bottom.</p>
+      <tt-fire preset="edge" height="72" direction="up"></tt-fire>
+    </section>
+    <section class="panel side" aria-label="edge right">
+      <h2>edge</h2>
+      <p class="note">direction="right"</p>
+      <tt-fire preset="edge" direction="right" width="56"></tt-fire>
+    </section>
+    <section class="panel accent" aria-label="accent">
+      <h2>accent</h2>
+      <p class="note">Two sizes, same fire.</p>
+      <div class="flames">
+        <tt-fire preset="accent" width="72" height="108"></tt-fire>
+        <tt-fire preset="accent" width="40" height="64"></tt-fire>
+      </div>
+    </section>
+    <section class="panel glow" aria-label="glow">
+      <h2>glow</h2>
+      <div class="card">Heat behind a card. Same tokens, almost no tongue.</div>
+      <tt-fire preset="glow" height="120"></tt-fire>
+    </section>
+  </div>
+</main>
+</body>
+</html>
