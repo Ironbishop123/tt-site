@@ -3,7 +3,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { background: var(--color-bg); color-scheme: dark; }
 body {
-  min-height: 100vh;
+  min-height: 100vh; /* fallback when svh is unsupported */
   display: flex;
   flex-direction: column;
   background: var(--color-bg);
@@ -12,6 +12,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 main { flex: 1; }
+@supports (min-height: 100svh) {
+  body { min-height: 100svh; }
+}
 img { max-width: 100%; }
 a { color: var(--color-link); text-underline-offset: 3px; }
 button, input { font: inherit; color: inherit; }
@@ -166,7 +169,7 @@ h1 {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: calc(100svh - 72px);
+  min-height: calc(100vh - 72px);
   background:
     radial-gradient(ellipse 40% 50% at 84% 46%, rgb(232 100 44 / 0.16), transparent 70%),
     linear-gradient(100deg, #0B0C0E 0%, #121418 55%, #17130F 100%);
@@ -181,7 +184,7 @@ h1 {
   position: relative;
   flex: none;
   overflow: hidden;
-  height: max(220px, min(30vw, 34svh));
+  height: max(220px, min(30vw, 34vh));
   -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 82%, transparent 100%);
 }
@@ -202,9 +205,38 @@ h1 {
   height: 100%;
   pointer-events: none;
 }
+@supports (min-height: 100svh) {
+  [data-layout="hero"] { min-height: calc(100svh - 72px); }
+}
+@supports (height: 1svh) {
+  [data-layout="hero"] [data-slot="stage"] { height: max(220px, min(30vw, 34svh)); }
+}
 @media (max-width: 767px) {
   [data-layout="hero"] .hero-copy { padding-block: var(--space-5) var(--space-4); }
   [data-layout="hero"] [data-slot="stage"] { height: 220px; }
+}
+/* Wide short panes: 8px top padding keeps the artist link inside the pane.
+   Widths under 480 keep the 24px padding. */
+@media (max-height: 400px) and (min-width: 480px) {
+  [data-layout="hero"] .hero-copy { padding-top: 8px; }
+}
+/* One scale for short landscape wider than 480px.
+   The board is the unscaled hero. The slot is the visible viewport. */
+@media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
+  [data-layout="hero"] {
+    --hero-board: 640px;
+    --hero-slot: calc(100vh - 72px);
+    --hero-scale: min(1, var(--hero-slot) / var(--hero-board));
+    flex: none;
+    height: var(--hero-board);
+    min-height: var(--hero-board);
+    zoom: var(--hero-scale);
+  }
+}
+@supports (height: 100svh) {
+  @media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
+    [data-layout="hero"] { --hero-slot: calc(100svh - 72px); }
+  }
 }
 [data-layout="product"] { --el-intensity: 0; --el-speed: 0; }
 [data-layout="product"] .wrap,
