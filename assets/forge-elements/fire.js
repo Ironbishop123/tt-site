@@ -8,7 +8,6 @@ import {
   forge,
   fbm,
   gnoise,
-  hash21,
   parseColor,
   pickBacking,
   prefersReducedMotion,
@@ -21,72 +20,59 @@ const STILL_URL = new URL('../fire_band_final.webp', import.meta.url).href;
 
 const DIRS = { up: 0, down: 1, right: 2, left: 3 };
 
-/* Shape only. Do not put palette or flicker rates here. */
+/* Shape only. Do not put palette or flicker rates here.
+   spread 1 is full bleed. Lower spread is one soft column (accent). */
 const PRESETS = {
   band: {
     intensity: 1,
-    spacing: 200,
-    minColumns: 3,
-    maxColumns: 9,
-    tipRise: 0.9,
-    baseHalf: 0.5,
-    tipHalf: 0.065,
-    tongue: 0.8,
-    body: 1,
-    glow: 0.9,
-    core: 1,
-    crown: 0.72,
-    caps: { maxW: 960, maxH: 360, phoneMaxW: 540, phoneMaxH: 210 },
+    reach: 0.97,
+    bed: 1,
+    tongue: 0.62,
+    spread: 1,
+    glow: 0.82,
+    core: 0.72,
+    crown: 0.24,
+    caps: { maxW: 1920, maxH: 560, phoneMaxW: 960, phoneMaxH: 320 },
   },
   edge: {
-    intensity: 0.9,
-    spacing: 58,
-    minColumns: 2,
-    maxColumns: 24,
-    tipRise: 0.86,
-    baseHalf: 0.5,
-    tipHalf: 0.08,
-    tongue: 0.74,
-    body: 1,
-    glow: 0.48,
-    core: 0.7,
-    crown: 0.04,
-    caps: { maxW: 900, maxH: 320, phoneMaxW: 480, phoneMaxH: 240 },
+    intensity: 0.88,
+    reach: 0.84,
+    bed: 1,
+    tongue: 0.78,
+    spread: 1,
+    glow: 0.46,
+    core: 0.55,
+    crown: 0.02,
+    caps: { maxW: 1600, maxH: 420, phoneMaxW: 800, phoneMaxH: 280 },
   },
   accent: {
     intensity: 1,
-    columns: 1,
-    tipRise: 0.9,
-    baseHalf: 0.44,
-    tipHalf: 0.05,
-    tongue: 0.88,
-    body: 1,
-    glow: 0.72,
-    core: 1.05,
-    crown: 0.1,
+    reach: 0.94,
+    bed: 0.82,
+    tongue: 0.68,
+    spread: 0.34,
+    glow: 0.64,
+    core: 0.74,
+    crown: 0.04,
     defaultWidth: '72px',
     defaultHeight: '104px',
-    caps: { maxW: 200, maxH: 260, phoneMaxW: 160, phoneMaxH: 220 },
+    caps: { maxW: 240, maxH: 320, phoneMaxW: 180, phoneMaxH: 240 },
   },
   glow: {
-    intensity: 0.68,
-    spacing: 280,
-    minColumns: 1,
-    maxColumns: 3,
-    tipRise: 0.5,
-    baseHalf: 0.78,
-    tipHalf: 0.45,
-    tongue: 0.16,
-    body: 0.2,
-    glow: 1.45,
-    core: 0.16,
-    crown: 0.1,
+    intensity: 0.7,
+    reach: 0.46,
+    bed: 1.15,
+    tongue: 0.22,
+    spread: 1,
+    glow: 1.28,
+    core: 0.3,
+    crown: 0.06,
     defaultHeight: '140px',
-    caps: { maxW: 560, maxH: 220, phoneMaxW: 380, phoneMaxH: 150 },
+    caps: { maxW: 1280, maxH: 300, phoneMaxW: 720, phoneMaxH: 180 },
   },
 };
 
-const CAPS_2D = { maxW: 168, maxH: 88, phoneMaxW: 128, phoneMaxH: 72 };
+const CAPS_2D = { maxW: 240, maxH: 110, phoneMaxW: 180, phoneMaxH: 90, floorCss: false };
 
 const VERT = `
 attribute vec2 aPos;
@@ -120,16 +106,15 @@ uniform vec3 uRed;
 uniform vec3 uOrange;
 uniform vec3 uYellow;
 uniform vec3 uWhite;
-uniform float uColumns;
-uniform float uTipRise;
-uniform float uBaseHalf;
-uniform float uTipHalf;
+uniform float uReach;
+uniform float uBed;
 uniform float uTongue;
-uniform float uBody;
+uniform float uSpread;
 uniform float uGlowAmt;
 uniform float uCore;
 uniform float uCrown;
 uniform float uDir;
+uniform float uAspect;
 
 float hash21(vec2 p) {
   vec3 s = fract(vec3(p.x * 0.2471806, p.y * 0.8191725, (p.x + p.y) * 0.4142136));
@@ -184,11 +169,11 @@ vec2 axes(vec2 uv) {
   return vec2(uv.y, 1.0 - uv.x);
 }
 
+/* Body stops at yellow. White is a separate, tiny base glint. */
 vec3 ramp(float h) {
-  vec3 c = mix(uDeep, uRed, smoothstep(0.02, 0.28, h));
-  c = mix(c, uOrange, smoothstep(0.16, 0.5, h));
-  c = mix(c, uYellow, smoothstep(0.4, 0.74, h));
-  c = mix(c, uWhite, smoothstep(0.66, 1.0, h));
+  vec3 c = mix(uDeep, uRed, smoothstep(0.0, 0.26, h));
+  c = mix(c, uOrange, smoothstep(0.12, 0.5, h));
+  c = mix(c, uYellow, smoothstep(0.4, 0.86, h));
   return c;
 }
 
@@ -196,60 +181,80 @@ void main() {
   vec2 ax = axes(vUv);
   float across = ax.x;
   float along = ax.y;
+  float yn = along;
 
-  float mid = 1.0 - smoothstep(0.0, 0.55, abs(across - 0.5));
-  float crown = mix(1.0, mix(0.78, 1.0, mid), uCrown);
-  float cols = max(uColumns, 1.0);
-  float x = across * cols;
-  float id = floor(x);
-  float local = fract(x) - 0.5;
-  float cellH = mix(0.58, 1.0, hash21(vec2(id + 0.5, 1.7)));
-  float reach = max(uTipRise * crown * cellH, 0.08);
-  float yn = along / reach;
-  float yn1 = clamp(yn, 0.0, 1.0);
+  /* max(aspect, 4) keeps a phone from collapsing to two lobes, without
+     going back to a fixed column count. */
+  float aspect = max(uAspect, 0.35);
+  float span = max(aspect, 4.0);
+  float x = (across - 0.5) * span * 1.7;
 
-  float sway = gnoise(vec2(id * 0.41 + uPhase, uTime * uSpeed * 0.27)) * uSway;
-  local += sway * mix(0.04, 0.4, yn1);
+  float flow = uTime * uSpeed * mix(uRise, uRiseTip, yn);
+  float lean = gnoise(vec2(x * 0.37 + uPhase, uTime * uSpeed * uSway * 0.2)) * uSway;
+  x += lean * yn * 1.2;
 
-  float flow = uTime * uSpeed * mix(uRise, uRiseTip, yn1);
-  vec2 p = vec2((local + across * 0.12) * mix(1.45, 2.7, yn1) + id * 1.87, yn * mix(1.1, 2.65, yn1) - flow);
-  p += vec2(3.1, 7.7);
+  vec2 p = vec2(x * mix(0.62, 1.9, yn) + 1.7, yn * mix(1.35, 3.5, yn) - flow + 5.2);
+  float warpAmp = uWarp * mix(0.32, 1.65, yn * yn);
+  vec2 q = vec2(fbm2(p + vec2(0.3, 3.4)), fbm2(p + vec2(7.2, 1.1)));
+  float n = fbm4(p + q * warpAmp);
+  float sheet = 1.0 - abs(gnoise(p * 2.05 + vec2(1.1, -flow * 0.5)));
+  float field = clamp(n * 0.5 + 0.5 + sheet * 0.12 * yn, 0.0, 1.0);
 
-  float warpAmp = uWarp * mix(0.1, 1.0, yn1);
-  vec2 q = vec2(fbm2(p + vec2(0.0, 1.7)), fbm2(p + vec2(4.2, 8.6)));
-  float base = fbm4(p + q * warpAmp);
-  float sheet = 1.0 - abs(gnoise(p * 2.15 + vec2(1.3, -flow * 0.35)));
-  float n = clamp(base * 0.5 + 0.5 + sheet * 0.22 * yn1, 0.0, 1.0);
+  /* Two incommensurate frequencies, so tongue heights differ and merge.
+     This is not a cell envelope. */
+  float xN = across * span;
+  float sky = gnoise(vec2(xN * 0.72 + uTime * uSpeed * 0.045, 1.7 + uPhase)) * 0.62
+            + gnoise(vec2(xN * 1.61 + 4.2, 6.3)) * 0.38;
+  float thresh = mix(0.02, 0.97, pow(yn, mix(0.55, 1.45, uTongue)));
+  thresh += sky * 0.36 * smoothstep(0.18, 0.92, yn);
+  float mid = 1.0 - smoothstep(0.0, 0.75, abs(across - 0.5));
+  thresh -= uCrown * mid * yn * 0.1;
+  float tongue = field - thresh;
 
-  float curve = pow(yn1, mix(0.48, 1.42, uTongue));
-  float field = n - curve * 0.92 + (1.0 - yn1) * 0.24 * uBody;
-  float halfW = mix(uBaseHalf, uTipHalf, pow(yn1, 0.82));
-  float side = 1.0 - smoothstep(halfW * 0.4, max(halfW, 0.02), abs(local));
-  float tipFade = 1.0 - smoothstep(0.76, 1.02, yn);
-  float head = 1.0 - smoothstep(0.97, 1.0, along);
-  float shaped = max(field, 0.0) * side * tipFade;
+  float bedN = 0.62 + 0.38 * gnoise(vec2(x * 0.85, 0.4 - uTime * uSpeed * uRise * 0.35));
+  float valley = (1.0 - smoothstep(0.3, 0.7, yn)) * 0.2 * uBed * clamp(bedN, 0.2, 1.0);
+  float density = tongue + valley;
 
-  float flame = smoothstep(0.02, 0.22, shaped);
-  float hot = smoothstep(0.14, 0.5, shaped);
-  float lift = exp(-((yn1 - 0.18) * (yn1 - 0.18)) / 0.16);
-  float heat = clamp(flame * mix(0.4, 1.0, lift) + hot * lift * uCore, 0.0, 1.0);
+  float edge = 1.0;
+  float spread = clamp(uSpread, 0.05, 1.0);
+  if (spread < 0.97) {
+    float open = mix(0.16, 0.58, spread);
+    float pinch = mix(open * 0.2, open, 1.0 - yn * 0.78);
+    edge = 1.0 - smoothstep(pinch, pinch + 0.05 + 0.1 * spread, abs(across - 0.5));
+  }
+
+  float reach = clamp(uReach, 0.15, 1.05);
+  float tipFade = 1.0 - smoothstep(reach * 0.84, reach, yn);
+  float head = 1.0 - smoothstep(0.985, 1.0, along);
+  float shaped = max(density, 0.0) * edge * tipFade;
+  float flame = smoothstep(0.0, 0.16, shaped);
+  float hot = smoothstep(0.1, 0.46, shaped);
+  float heat = clamp(flame * 0.32 + hot * 0.62 * mix(0.55, 1.0, uCore), 0.0, 0.84);
+
+  vec3 col = ramp(heat);
+  float glint = smoothstep(0.8, 0.97, field)
+    * smoothstep(0.16, 0.26, yn) * (1.0 - smoothstep(0.26, 0.4, yn))
+    * hot;
+  col = mix(col, uWhite, clamp(glint, 0.0, 0.35));
 
   float flick = 1.0
     + uAmp.x * sin(uTime * uHz.x + uPhase)
-    + uAmp.y * sin(uTime * uHz.y + id * 1.31 + uPhase)
-    + uAmp.z * sin(uTime * uHz.z + n * 8.0 + id);
-  flick = clamp(flick, 0.8, 1.16);
+    + uAmp.y * sin(uTime * uHz.y + x * 1.7 + uPhase)
+    + uAmp.z * sin(uTime * uHz.z + field * 9.0 + x);
+  flick = clamp(flick, 0.82, 1.12);
 
-  float bloom = smoothstep(0.0, 0.3, field * 0.8 + 0.08) * (1.0 - smoothstep(halfW, halfW + 0.28, abs(local)));
-  bloom *= (1.0 - smoothstep(0.0, 1.2, yn)) * uGlowAmt * head;
-
-  vec3 col = ramp(heat);
-  col += uOrange * bloom * 0.6;
-  col += uYellow * hot * hot * lift * uCore * 0.22;
+  float bloom = smoothstep(0.04, 0.34, tongue) * (1.0 - smoothstep(0.1, 1.0, yn));
+  bloom *= uGlowAmt * head * edge;
+  col += uOrange * bloom * 0.32;
+  col += uYellow * hot * uCore * 0.1;
   col *= uIntensity * flick;
 
-  float alpha = clamp(flame * 0.95 + bloom * 0.42, 0.0, 1.0) * head;
-  gl_FragColor = vec4(clamp(col, 0.0, 1.0), clamp(alpha, 0.0, 1.0));
+  float luma = dot(max(col, 0.0), vec3(0.2126, 0.7152, 0.0722));
+  float capL = mix(0.86, 0.93, clamp(glint, 0.0, 1.0));
+  col *= min(1.0, capL / max(luma, 0.0001));
+
+  float alpha = clamp((flame * 0.94 + bloom * 0.34) * head, 0.0, 1.0);
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), alpha);
 }
 `;
 
@@ -262,12 +267,6 @@ function cssLen(v) {
 
 function presetOf(name) {
   return PRESETS[name] || PRESETS.band;
-}
-
-function columnsFor(preset, acrossPx) {
-  if (preset.columns) return preset.columns;
-  const n = acrossPx / preset.spacing;
-  return Math.max(preset.minColumns, Math.min(preset.maxColumns, n));
 }
 
 function mix(a, b, t) {
@@ -284,60 +283,80 @@ function lerp3(a, b, t) {
   return [mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2], b[2], t)];
 }
 function ramp(theme, h) {
-  let c = lerp3(theme.deep, theme.red, smooth(0.02, 0.28, h));
-  c = lerp3(c, theme.orange, smooth(0.16, 0.5, h));
-  c = lerp3(c, theme.yellow, smooth(0.4, 0.74, h));
-  return lerp3(c, theme.white, smooth(0.66, 1, h));
+  let c = lerp3(theme.deep, theme.red, smooth(0, 0.26, h));
+  c = lerp3(c, theme.orange, smooth(0.12, 0.5, h));
+  return lerp3(c, theme.yellow, smooth(0.4, 0.86, h));
 }
 
 /* Same shape math as the shader, fewer noise octaves, for the no-WebGL path. */
 function shade2d(across, along, time, phase, shape, theme) {
-  const mid = 1 - smooth(0, 0.55, Math.abs(across - 0.5));
-  const crown = mix(1, mix(0.78, 1, mid), shape.crown);
-  const cols = Math.max(shape.columns, 1);
-  const x = across * cols;
-  const id = Math.floor(x);
-  let local = x - id - 0.5;
-  const cellH = mix(0.58, 1, hash21(id + 1, 2));
-  const reach = Math.max(shape.tipRise * crown * cellH, 0.08);
-  const yn = along / reach;
-  const yn1 = clamp01(yn);
-  const sway = gnoise(id * 0.41 + phase, time * theme.speed * 0.27) * MOTION.sway;
-  local += sway * mix(0.04, 0.4, yn1);
-  const flow = time * theme.speed * mix(MOTION.rise, MOTION.riseTip, yn1);
-  let px = (local + across * 0.12) * mix(1.45, 2.7, yn1) + id * 1.87 + 3.1;
-  let py = yn * mix(1.1, 2.65, yn1) - flow + 7.7;
-  const warpAmp = MOTION.warp * mix(0.1, 1, yn1);
-  const q = fbm(px, py + 1.7, 2);
-  const base = fbm(px + q * warpAmp, py + fbm(px + 4.2, py + 8.6, 2) * warpAmp, 3);
-  const n = clamp01(base * 0.5 + 0.5);
-  const curve = yn1 ** mix(0.48, 1.42, shape.tongue);
-  const field = n - curve * 0.92 + (1 - yn1) * 0.24 * shape.body;
-  const halfW = mix(shape.baseHalf, shape.tipHalf, yn1 ** 0.82);
-  const side = 1 - smooth(halfW * 0.4, Math.max(halfW, 0.02), Math.abs(local));
-  const tipFade = 1 - smooth(0.76, 1.02, yn);
-  const head = 1 - smooth(0.97, 1, along);
-  const shaped = Math.max(field, 0) * side * tipFade;
-  const flame = smooth(0.02, 0.22, shaped);
-  const hot = smooth(0.14, 0.5, shaped);
-  const lift = Math.exp(-((yn1 - 0.18) ** 2) / 0.16);
-  const heat = Math.min(1, flame * mix(0.4, 1, lift) + hot * lift * shape.core);
+  const aspect = Math.max(shape.aspect, 0.35);
+  const span = Math.max(aspect, 4);
+  let x = (across - 0.5) * span * 1.7;
+  const yn = along;
+  const speed = theme.speed;
+  const flow = time * speed * mix(MOTION.rise, MOTION.riseTip, yn);
+  const lean = gnoise(x * 0.37 + phase, time * speed * MOTION.sway * 0.2) * MOTION.sway;
+  x += lean * yn * 1.2;
+  const px = x * mix(0.62, 1.9, yn) + 1.7;
+  const py = yn * mix(1.35, 3.5, yn) - flow + 5.2;
+  const warpAmp = MOTION.warp * mix(0.32, 1.65, yn * yn);
+  const q0 = fbm(px + 0.3, py + 3.4, 2);
+  const q1 = fbm(px + 7.2, py + 1.1, 2);
+  const n = fbm(px + q0 * warpAmp, py + q1 * warpAmp, 3);
+  const sheet = 1 - Math.abs(gnoise(px * 2.05 + 1.1, py * 2.05 - flow * 0.5));
+  const field = clamp01(n * 0.5 + 0.5 + sheet * 0.12 * yn);
+  const xN = across * span;
+  const sky = gnoise(xN * 0.72 + time * speed * 0.045, 1.7 + phase) * 0.62
+    + gnoise(xN * 1.61 + 4.2, 6.3) * 0.38;
+  const mid = 1 - smooth(0, 0.75, Math.abs(across - 0.5));
+  const thresh = mix(0.02, 0.97, yn ** mix(0.55, 1.45, shape.tongue))
+    + sky * 0.36 * smooth(0.18, 0.92, yn)
+    - shape.crown * mid * yn * 0.1;
+  const tongue = field - thresh;
+  const bedN = 0.62 + 0.38 * gnoise(x * 0.85, 0.4 - time * speed * MOTION.rise * 0.35);
+  const valley = (1 - smooth(0.3, 0.7, yn)) * 0.2 * shape.bed * Math.min(1, Math.max(0.2, bedN));
+  const density = tongue + valley;
+  let edge = 1;
+  const spread = Math.min(1, Math.max(0.05, shape.spread));
+  if (spread < 0.97) {
+    const open = mix(0.16, 0.58, spread);
+    const pinch = mix(open * 0.2, open, 1 - yn * 0.78);
+    edge = 1 - smooth(pinch, pinch + 0.05 + 0.1 * spread, Math.abs(across - 0.5));
+  }
+  const reach = Math.min(1.05, Math.max(0.15, shape.reach));
+  const tipFade = 1 - smooth(reach * 0.84, reach, yn);
+  const head = 1 - smooth(0.985, 1, along);
+  const shaped = Math.max(density, 0) * edge * tipFade;
+  const flame = smooth(0, 0.16, shaped);
+  const hot = smooth(0.1, 0.46, shaped);
+  const heat = Math.min(0.84, flame * 0.32 + hot * 0.62 * mix(0.55, 1, shape.core));
+  const col = ramp(theme, heat);
+  const glint = smooth(0.8, 0.97, field) * smooth(0.16, 0.26, yn) * (1 - smooth(0.26, 0.4, yn)) * hot;
+  const gmix = Math.min(0.35, Math.max(0, glint));
   const hz = MOTION.flickerHz;
   const amp = MOTION.flickerAmp;
   let flick = 1
     + amp[0] * Math.sin(time * hz[0] + phase)
-    + amp[1] * Math.sin(time * hz[1] + id * 1.31 + phase)
-    + amp[2] * Math.sin(time * hz[2] + n * 8 + id);
-  flick = Math.min(1.16, Math.max(0.8, flick));
-  let bloom = smooth(0, 0.3, field * 0.8 + 0.08) * (1 - smooth(halfW, halfW + 0.28, Math.abs(local)));
-  bloom *= (1 - smooth(0, 1.2, yn)) * shape.glow * head;
-  const col = ramp(theme, heat);
+    + amp[1] * Math.sin(time * hz[1] + x * 1.7 + phase)
+    + amp[2] * Math.sin(time * hz[2] + field * 9 + x);
+  flick = Math.min(1.12, Math.max(0.82, flick));
+  let bloom = smooth(0.04, 0.34, tongue) * (1 - smooth(0.1, 1, yn));
+  bloom *= shape.glow * head * edge;
   const inten = theme.intensity * flick;
-  const r = Math.min(1, (col[0] + theme.orange[0] * bloom * 0.6 + theme.yellow[0] * hot * hot * lift * shape.core * 0.22) * inten);
-  const g = Math.min(1, (col[1] + theme.orange[1] * bloom * 0.6 + theme.yellow[1] * hot * hot * lift * shape.core * 0.22) * inten);
-  const b = Math.min(1, (col[2] + theme.orange[2] * bloom * 0.6 + theme.yellow[2] * hot * hot * lift * shape.core * 0.22) * inten);
-  const alpha = Math.min(1, (flame * 0.95 + bloom * 0.42) * head);
-  return [(r * 255) | 0, (g * 255) | 0, (b * 255) | 0, (alpha * 255) | 0];
+  let r = (mix(col[0], theme.white[0], gmix) + theme.orange[0] * bloom * 0.32 + theme.yellow[0] * hot * shape.core * 0.1) * inten;
+  let g = (mix(col[1], theme.white[1], gmix) + theme.orange[1] * bloom * 0.32 + theme.yellow[1] * hot * shape.core * 0.1) * inten;
+  let b = (mix(col[2], theme.white[2], gmix) + theme.orange[2] * bloom * 0.32 + theme.yellow[2] * hot * shape.core * 0.1) * inten;
+  const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const capL = mix(0.86, 0.93, clamp01(glint));
+  if (luma > capL && luma > 0) {
+    const s = capL / luma;
+    r *= s;
+    g *= s;
+    b *= s;
+  }
+  const alpha = Math.min(1, (flame * 0.94 + bloom * 0.34) * head);
+  return [(clamp01(r) * 255) | 0, (clamp01(g) * 255) | 0, (clamp01(b) * 255) | 0, (alpha * 255) | 0];
 }
 
 class TTFire extends HTMLElement {
@@ -354,9 +373,9 @@ class TTFire extends HTMLElement {
     this._theme = null;
     const root = this.attachShadow({ mode: 'open' });
     root.innerHTML = `<style>
-      :host{display:block}
-      canvas{display:block;width:100%;height:100%}
-      img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom}
+      :host{display:block;position:relative}
+      canvas,img{position:absolute;inset:0;width:100%;height:100%;display:block}
+      img{object-fit:contain;object-position:center bottom}
     </style>`;
     this._root = root;
   }
@@ -468,6 +487,8 @@ class TTFire extends HTMLElement {
       }, { rootMargin: '64px' });
       this._io.observe(this);
     }
+    /* Host only. The bitmap size must not feed back into layout, or a
+       resolution cap becomes the element's width. */
     if (typeof ResizeObserver === 'function') {
       this._ro = new ResizeObserver(() => {
         this._sized = false;
@@ -504,19 +525,19 @@ class TTFire extends HTMLElement {
     const spec = presetOf(this.preset);
     const horizontal = this.direction === 'up' || this.direction === 'down';
     const across = horizontal ? rect.width : rect.height;
+    const along = horizontal ? rect.height : rect.width;
     const attr = this.getAttribute('intensity');
     const attrN = attr == null || attr === '' || Number.isNaN(+attr) ? 1 : +attr;
     return {
-      columns: columnsFor(spec, Math.max(across, 1)),
-      tipRise: spec.tipRise,
-      baseHalf: spec.baseHalf,
-      tipHalf: spec.tipHalf,
+      reach: spec.reach,
+      bed: spec.bed,
       tongue: spec.tongue,
-      body: spec.body,
+      spread: spec.spread,
       glow: spec.glow,
       core: spec.core,
       crown: spec.crown,
       intensity: spec.intensity * attrN,
+      aspect: across / Math.max(along, 1),
     };
   }
 
@@ -535,6 +556,12 @@ class TTFire extends HTMLElement {
       this.canvas.width = size.w;
       this.canvas.height = size.h;
     }
+    /* The width/height attributes set the bitmap. Layout stays on the host. */
+    const canvas = this.canvas;
+    canvas.style.position = 'absolute';
+    canvas.style.inset = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
     const theme = this.themeNow();
     const shape = this.shapeNow(rect);
     const time = ((t * 0.001) % 90);
@@ -562,16 +589,15 @@ class TTFire extends HTMLElement {
     gl.uniform3fv(locs.uOrange, theme.orange);
     gl.uniform3fv(locs.uYellow, theme.yellow);
     gl.uniform3fv(locs.uWhite, theme.white);
-    gl.uniform1f(locs.uColumns, shape.columns);
-    gl.uniform1f(locs.uTipRise, shape.tipRise);
-    gl.uniform1f(locs.uBaseHalf, shape.baseHalf);
-    gl.uniform1f(locs.uTipHalf, shape.tipHalf);
+    gl.uniform1f(locs.uReach, shape.reach);
+    gl.uniform1f(locs.uBed, shape.bed);
     gl.uniform1f(locs.uTongue, shape.tongue);
-    gl.uniform1f(locs.uBody, shape.body);
+    gl.uniform1f(locs.uSpread, shape.spread);
     gl.uniform1f(locs.uGlowAmt, shape.glow);
     gl.uniform1f(locs.uCore, shape.core);
     gl.uniform1f(locs.uCrown, shape.crown);
     gl.uniform1f(locs.uDir, DIRS[this.direction]);
+    gl.uniform1f(locs.uAspect, shape.aspect);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     this.ctx.clearRect(0, 0, size.w, size.h);
     this.ctx.drawImage(forge.canvas(), 0, 0, size.w, size.h, 0, 0, size.w, size.h);
@@ -592,10 +618,17 @@ class TTFire extends HTMLElement {
       intensity: theme.intensity * shape.intensity,
       speed: theme.speed,
     };
+    const dir = this.direction;
     for (let y = 0; y < h; y++) {
-      const along = 1 - y / (h - 1);
+      const v = 1 - y / (h - 1);
       for (let x = 0; x < w; x++) {
-        const px = shade2d(x / (w - 1), along, time, this.phase, shape, themed);
+        const u = x / (w - 1);
+        let across = u;
+        let along = v;
+        if (dir === 'down') along = 1 - v;
+        else if (dir === 'right') { across = v; along = u; }
+        else if (dir === 'left') { across = v; along = 1 - u; }
+        const px = shade2d(across, along, time, this.phase, shape, themed);
         const i = (y * w + x) * 4;
         data[i] = px[0];
         data[i + 1] = px[1];

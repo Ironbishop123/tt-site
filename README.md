@@ -41,7 +41,7 @@ Presets on `<tt-fire>` only change size, intensity, and shape. They do not chang
 <tt-fire preset="glow" height="120"></tt-fire>
 ```
 
-Size a `band` with CSS (the homepage does this on `.fire`). Accent has a default box; the others grow to the width of their parent. `fire-demo.html` shows all four presets together. It is `noindex`.
+Size a `band` with CSS (the homepage does this on `.fire`). The canvas fills that box; a device-pixel cap never shrinks the bitmap below it, and it does not change the layout. Accent has a default box; the others grow to the width of their parent. `fire-demo.html` shows all four presets together. It is `noindex`.
 
 The homepage keeps the ember canvas. The old CSS `scaleY` flicker on `.fire` is gone; flicker is inside the shader. The top-fade mask on `.fire` is unchanged, and the flame tips stop inside the box so the mask and the viewport do not clip them.
 

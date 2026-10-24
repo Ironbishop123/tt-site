@@ -30,21 +30,23 @@ Time is subtracted from the noise's vertical coordinate, so features travel up t
 - Mark Fischer, [WebGL fire shader based on fBM](https://blog.fixermark.com/posts/2025/webgl-fire-shader-based-on-fbm/)
 - Moonjump, [Fire & Smoke](https://moonjump.com/forum/shader-sandbox/tutorial/fire-and-smoke)
 
-### Flame-shape masks (this is what makes tongues)
+### Flame shape (continuous bed, irregular tongues)
 
-Noise alone is a cloud. The flame is that cloud with three masks:
+Noise alone is a cloud. There is no per-cell envelope and no periodic triangle. A repeating `floor` / `fract` column reads as a sawtooth, not fire.
 
-1. A per-tongue envelope, wide at the base and narrow at the tip, so neighbors share one bed of fire and split into licks above it.
-2. A threshold that climbs with height. At the base most of the noise survives. At the top only the peaks survive, and those peaks are the tongues.
-3. A hard fade before the canvas edge, plus a reach that stops short of the top. Tips end inside the box. They are not cropped by `background-size: cover`.
+1. A continuous bed. Near the base the threshold is low, and a second low-frequency sample keeps that bed from being a flat rectangle. On a full-bleed preset it reaches both edges of the element.
+2. A threshold that climbs with height, shifted by a slow noise along the width. Only the peaks survive up high, and those peaks are tongues of different heights that merge where the noise stays hot. Nothing in that function has a fixed period.
+3. Domain warp, stronger with height, curls those tongues. A ridged octave (one noise lookup, inverted absolute value) puts thin sheets inside the body.
+4. A soft side envelope only when `spread` is below 1 (the accent). The band, the edge, and the glow skip it, so they are not a row of cones.
+5. A fade at `reach`, short of the top of the box, so tips end inside the element.
 
-A crown term on the band preset makes the middle of the page slightly taller than the corners, which matches a hearth rather than a trimmed hedge. A ridged extra octave (one noise lookup, inverted absolute value) puts thin bright sheets inside the column. Those read as flame fronts rather than cotton.
+A crown term on the band preset makes the middle of the page slightly taller than the corners, which matches a hearth rather than a trimmed hedge.
 
 - ShaderBattle, [Fire 1: a flame you can see into](https://shaderbattle.com/learn/fire-1-a-flame-you-can-see-into) (taper, sway, turbulence taken out of the density, heat cooler at the tip)
 
 ### Blackbody color
 
-Heat, not a separate palette per preset, picks the color. The ramp follows the blackbody locus from a dull red through orange and yellow to a yellow-white core, using the brand stops already on the page: deep red, `#E8642C` (heat), `#FFB43C` (hot), then `#FFF6E4` only where the flame is thick and low. Tips stay red because the white stop is gated by a lift curve peaked in the lower body. It is a piecewise ramp chosen against that locus, not a copied polynomial.
+Heat, not a separate palette per preset, picks the color. The ramp follows the blackbody locus from a dull red through orange and stops at yellow (`#E8642C`, then `#FFB43C`). It does not blend the body up to white. `#FFF6E4` is mixed in only where the noise peaks and only in the bottom of the flame, a few small glints at the base. After flicker and bloom, luminance (`0.2126, 0.7152, 0.0722`) is clamped so the body stays yellow-orange and those glints cannot blow out. It is a piecewise ramp chosen against that locus, not a copied polynomial.
 
 - [Black body](https://en.wikipedia.org/wiki/Black_body)
 - [Planckian locus](https://en.wikipedia.org/wiki/Planckian_locus)
@@ -65,7 +67,7 @@ Presets do not get their own rates. Speed from the theme scales all three.
 
 ## Presets
 
-`band`, `edge`, `accent`, and `glow` change spacing, reach, width, how hard the height threshold breaks the tips, how much of the soft glow shows, and an intensity multiplier. Palette and motion stay on the shared tokens. Direction (`up`, `down`, `left`, `right`) only turns which edge the flames grow from.
+`band`, `edge`, `accent`, and `glow` change reach, how thick the bed is, how fast the height threshold climbs, whether the fire is full-bleed or one column (`spread`), how much of the soft glow shows, and an intensity multiplier. Palette and motion stay on the shared tokens. Direction (`up`, `down`, `left`, `right`) only turns which edge the flames grow from.
 
 ## What we did not use
 
@@ -76,4 +78,4 @@ Presets do not get their own rates. Speed from the theme scales all three.
 
 ## Cost
 
-One WebGL context and one `requestAnimationFrame` loop for every `<tt-fire>` on the page. Each instance is a quad. The backing store is capped (about 960px on the long side on a desktop band, lower on a phone or a coarse pointer) so a 2560px display does not rasterize 2560 pixels of fire. The loop stops when the tab is hidden or every instance is off screen. `prefers-reduced-motion` does not run it: the element shows `assets/fire_band_final.webp` with `object-fit: contain` and no scale animation. If WebGL cannot start, the same tokens and the same shape math run through the JS noise in `core.js` into a small canvas. If that cannot start either, the still image is used.
+One WebGL context and one `requestAnimationFrame` loop for every `<tt-fire>` on the page. Each instance is a quad. The canvas is absolutely positioned to the host, so its bitmap size cannot change the layout. `ResizeObserver` watches the host. `devicePixelRatio` is capped (about 1.35, or 1.1 on a phone or a coarse pointer) but the bitmap is never smaller than the element's CSS box, so a wide viewport is not cut off at a fixed pixel cap. The loop stops when the tab is hidden or every instance is off screen. `prefers-reduced-motion` does not run it: the element shows `assets/fire_band_final.webp` with `object-fit: contain` and no scale animation. If WebGL cannot start, the same tokens and the same shape math run through the JS noise in `core.js` into a small canvas that CSS stretches to the host. If that cannot start either, the still image is used.

@@ -169,23 +169,42 @@ export function prefersReducedMotion() {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/* Backing-store size. devicePixelRatio is capped, but the cap is only allowed
+   to drop resolution above 1 CSS pixel. It must not return a bitmap smaller
+   than the element's CSS box (that used to stop a 1440px band at 960px).
+   Pass caps.floorCss = false for the Canvas2D fallback, which stays small
+   and is stretched by CSS instead. */
 export function pickBacking(cssW, cssH, caps, phone) {
   const coarse = phone || (typeof matchMedia === 'function' && matchMedia('(pointer:coarse)').matches);
   const dprCap = coarse || cssW < 760 ? 1.1 : 1.35;
-  const dpr = Math.min((typeof devicePixelRatio === 'number' ? devicePixelRatio : 1) || 1, dprCap);
-  let w = Math.max(2, cssW * dpr);
-  let h = Math.max(2, cssH * dpr);
-  const maxW = coarse && caps.phoneMaxW ? caps.phoneMaxW : caps.maxW;
-  const maxH = coarse && caps.phoneMaxH ? caps.phoneMaxH : caps.maxH;
-  if (w > maxW) {
+  const raw = (typeof devicePixelRatio === 'number' ? devicePixelRatio : 1) || 1;
+  const dpr = Math.min(Math.max(raw, 0.5), dprCap);
+  const cssRW = Math.max(2, Math.round(cssW));
+  const cssRH = Math.max(2, Math.round(cssH));
+  const floor = !caps || caps.floorCss !== false;
+  let w = cssW * dpr;
+  let h = cssH * dpr;
+  let maxW = coarse && caps && caps.phoneMaxW ? caps.phoneMaxW : caps && caps.maxW;
+  let maxH = coarse && caps && caps.phoneMaxH ? caps.phoneMaxH : caps && caps.maxH;
+  if (floor) {
+    if (maxW) maxW = Math.max(maxW, cssRW);
+    if (maxH) maxH = Math.max(maxH, cssRH);
+  }
+  if (maxW && w > maxW) {
     h *= maxW / w;
     w = maxW;
   }
-  if (h > maxH) {
+  if (maxH && h > maxH) {
     w *= maxH / h;
     h = maxH;
   }
-  return { w: Math.max(2, Math.round(w)), h: Math.max(2, Math.round(h)) };
+  w = Math.round(w);
+  h = Math.round(h);
+  if (floor) {
+    w = Math.max(cssRW, w);
+    h = Math.max(cssRH, h);
+  }
+  return { w: Math.max(2, w), h: Math.max(2, h) };
 }
 
 function createLoop() {
@@ -306,7 +325,7 @@ function createLoop() {
     const names = [
       'uTime', 'uPhase', 'uIntensity', 'uSpeed', 'uRise', 'uRiseTip', 'uSway', 'uWarp',
       'uHz', 'uAmp', 'uDeep', 'uRed', 'uOrange', 'uYellow', 'uWhite',
-      'uColumns', 'uTipRise', 'uBaseHalf', 'uTipHalf', 'uTongue', 'uBody', 'uGlowAmt', 'uCore', 'uCrown', 'uDir',
+      'uReach', 'uBed', 'uTongue', 'uSpread', 'uGlowAmt', 'uCore', 'uCrown', 'uDir', 'uAspect',
     ];
     locs = {};
     for (const name of names) locs[name] = gl.getUniformLocation(program, name);
