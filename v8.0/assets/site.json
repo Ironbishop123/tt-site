@@ -1,9 +1,9 @@
 {
   "brand": "TEMPERED TEES",
   "nav": [
-    {"label": "Today's Drop", "href": "index.html"},
     {"label": "Vault", "href": "vault.html"},
-    {"label": "Artists", "href": "artist.html"}
+    {"label": "Artists", "href": "artist.html"},
+    {"label": "Cart", "href": "cart.html"}
   ],
   "cart": {"label": "Cart", "href": "cart.html"},
   "legal": [
