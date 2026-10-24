@@ -1,0 +1,29 @@
+/* Shadow styles for <tt-fire>. Linked, not inlined, so style-src 'self' holds. */
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+:host([preset="accent"]) {
+  width: 72px;
+  height: 104px;
+  flex-shrink: 0;
+}
+:host([preset="glow"]) {
+  height: 140px;
+}
+canvas,
+img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+img {
+  object-fit: contain;
+  object-position: center bottom;
+}

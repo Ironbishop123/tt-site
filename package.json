@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sanitize-svg": "node docs/tools/svg_sanitize.mjs",
+    "test:svg": "node docs/tools/test_sanitize.mjs",
+    "test:drops": "node v8.0/check/drop-states.mjs"
+  },
+  "dependencies": {
+    "dompurify": "3.2.6",
+    "jsdom": "26.1.0",
+    "svgo": "4.0.0"
+  }
+}

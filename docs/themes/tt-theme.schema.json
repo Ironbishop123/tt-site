@@ -1,0 +1,404 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "tt-theme",
+ "type": "object",
+ "required": [
+  "id",
+  "version",
+  "tokens"
+ ],
+ "additionalProperties": false,
+ "$defs": {
+  "asset": {
+   "type": "string",
+   "pattern": "^assets/themes/[a-z0-9-]{3,40}/[a-z0-9_-]{1,40}\\.(svg|png|webp)$"
+  },
+  "hex": {
+   "type": "string",
+   "pattern": "^#[0-9A-Fa-f]{6}$"
+  },
+  "slots": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "frame": {
+     "oneOf": [
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "src"
+       ],
+       "properties": {
+        "src": {
+         "$ref": "#/$defs/vector_or_png"
+        },
+        "slice": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 64
+        }
+       }
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "width",
+        "style"
+       ],
+       "properties": {
+        "width": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 12
+        },
+        "style": {
+         "enum": [
+          "solid",
+          "double",
+          "none"
+         ]
+        },
+        "radius": {
+         "type": "integer",
+         "minimum": 0,
+         "maximum": 8
+        }
+       }
+      }
+     ]
+    },
+    "background_texture": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "src"
+     ],
+     "properties": {
+      "src": {
+       "$ref": "#/$defs/asset"
+      },
+      "opacity": {
+       "type": "number",
+       "minimum": 0,
+       "maximum": 0.35
+      }
+     }
+    },
+    "accent_color": {
+     "$ref": "#/$defs/hex"
+    },
+    "header_art": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "src",
+      "alt"
+     ],
+     "properties": {
+      "src": {
+       "$ref": "#/$defs/asset"
+      },
+      "alt": {
+       "type": "string",
+       "maxLength": 120,
+       "pattern": "^[^<>]*$"
+      }
+     }
+    },
+    "motion_accent": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "element"
+     ],
+     "properties": {
+      "element": {
+       "enum": [
+        "fire",
+        "lava-rock",
+        "coals",
+        "embers"
+       ]
+      },
+      "intensity": {
+       "type": "number",
+       "minimum": 0,
+       "maximum": 0.5
+      }
+     }
+    }
+   }
+  },
+  "link": {
+   "type": "string",
+   "maxLength": 200,
+   "pattern": "^https://(www\\.)?(instagram\\.com|tiktok\\.com|x\\.com|threads\\.net|bsky\\.app|youtube\\.com|behance\\.net|artstation\\.com|dribbble\\.com|etsy\\.com|ko-fi\\.com|patreon\\.com|linktr\\.ee|example\\.com)(/[^\\s\"'<>@]*)?$",
+   "description": "https only, allowlisted host, no userinfo/port (spec \u00a73a M1). example.com = test themes only."
+  },
+  "panel": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "type",
+    "title"
+   ],
+   "properties": {
+    "type": {
+     "enum": [
+      "about",
+      "links",
+      "commissions",
+      "process_gallery",
+      "featured_designs"
+     ]
+    },
+    "title": {
+     "type": "string",
+     "minLength": 1,
+     "maxLength": 40,
+     "pattern": "^[^<>]*$"
+    },
+    "text": {
+     "type": "string",
+     "maxLength": 300,
+     "pattern": "^[^<>]*$"
+    },
+    "image": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "src",
+      "alt",
+      "height"
+     ],
+     "properties": {
+      "src": {
+       "$ref": "#/$defs/asset"
+      },
+      "alt": {
+       "type": "string",
+       "maxLength": 120,
+       "pattern": "^[^<>]*$"
+      },
+      "height": {
+       "enum": [
+        80,
+        160,
+        240,
+        320
+       ],
+       "$comment": "fixed width 320 CSS px"
+      }
+     }
+    },
+    "link": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "url",
+      "label",
+      "kind"
+     ],
+     "properties": {
+      "url": {
+       "$ref": "#/$defs/link"
+      },
+      "label": {
+       "type": "string",
+       "maxLength": 40,
+       "pattern": "^[^<>]*$"
+      },
+      "kind": {
+       "enum": [
+        "shop",
+        "social",
+        "commissions",
+        "other"
+       ]
+      }
+     }
+    }
+   },
+   "allOf": [
+    {
+     "if": {
+      "properties": {
+       "type": {
+        "const": "featured_designs"
+       }
+      }
+     },
+     "then": {
+      "not": {
+       "anyOf": [
+        {
+         "required": [
+          "items"
+         ]
+        },
+        {
+         "required": [
+          "link"
+         ]
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "vector_or_png": {
+   "type": "string",
+   "pattern": "^assets/themes/[a-z0-9-]{3,40}/[a-z0-9_-]{1,40}\\.(svg|png)$"
+  }
+ },
+ "properties": {
+  "id": {
+   "type": "string",
+   "pattern": "^[a-z0-9-]{3,40}$"
+  },
+  "version": {
+   "type": "integer",
+   "minimum": 1
+  },
+  "artist": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "name": {
+     "type": "string",
+     "maxLength": 60,
+     "pattern": "^[^<>]*$"
+    },
+    "bio": {
+     "type": "string",
+     "maxLength": 600,
+     "pattern": "^[^<>]*$"
+    },
+    "links": {
+     "type": "array",
+     "maxItems": 5,
+     "items": {
+      "$ref": "#/$defs/link"
+     }
+    }
+   }
+  },
+  "tokens": {
+   "type": "object",
+   "additionalProperties": false,
+   "patternProperties": {
+    "^--color-(bg|surface|text|text-muted|accent|accent-contrast|line|link)$": {
+     "$ref": "#/$defs/hex"
+    },
+    "^--el-(core|hot|mid|cool|smoke)$": {
+     "$ref": "#/$defs/hex"
+    },
+    "^--el-(intensity|speed)$": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1
+    },
+    "^--font-display$": {
+     "enum": [
+      "Space Grotesk",
+      "Inter",
+      "Anton",
+      "Bebas Neue",
+      "Archivo Black",
+      "Bungee",
+      "Abril Fatface",
+      "Alfa Slab One",
+      "Zilla Slab",
+      "Bevan",
+      "Pacifico",
+      "Lobster",
+      "Caveat Brush",
+      "Space Mono",
+      "JetBrains Mono",
+      "Rubik Mono One",
+      "Stardos Stencil",
+      "Big Shoulders Stencil Display",
+      "Rubik Dirt",
+      "Barlow Condensed",
+      "Oswald",
+      "Fjalla One",
+      "Arvo",
+      "Kalam"
+     ],
+     "$comment": "Site set + 22 curated OFL fonts from creative/design-direction-v2.1/Artist_Fonts.md. Self-hosted only; listed woff2 URLs are download sources, never runtime refs. Gatekeeper verifies licences (G34/G35)."
+    }
+   }
+  },
+  "elements": {
+   "type": "array",
+   "maxItems": 1,
+   "items": {
+    "enum": [
+     "fire",
+     "lava-rock",
+     "coals",
+     "embers"
+    ]
+   }
+  },
+  "slots": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "profile": {
+     "$ref": "#/$defs/slots"
+    },
+    "selling": {
+     "$ref": "#/$defs/slots"
+    }
+   }
+  },
+  "profile": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "banner": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "src",
+      "alt"
+     ],
+     "properties": {
+      "src": {
+       "$ref": "#/$defs/asset"
+      },
+      "alt": {
+       "type": "string",
+       "maxLength": 120,
+       "pattern": "^[^<>]*$"
+      }
+     }
+    },
+    "avatar_frame": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "src"
+     ],
+     "properties": {
+      "src": {
+       "$ref": "#/$defs/vector_or_png"
+      }
+     }
+    },
+    "panels": {
+     "type": "array",
+     "maxItems": 8,
+     "items": {
+      "$ref": "#/$defs/panel"
+     }
+    }
+   }
+  }
+ },
+ "$comment": "spec v0.6"
+}
