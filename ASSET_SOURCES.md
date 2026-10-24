@@ -2,7 +2,7 @@
 
 Source and licence for every image, icon, and font in this phase. Creative checked the twelve files left out of PR #2 on 2026-10-24 (Provenance_PR2). All twelve are SELF-MADE. None of those twelve binaries are in this PR.
 
-SELF-MADE means code we wrote, or Paul's own camera photo. Licence for self-made code is original work owned by Tempered Tees, not a third-party licence. UNVERIFIED is used only where the source is actually unknown. The v8.0, demo, and Creative rows below are not UNVERIFIED. Public files with no source recorded anywhere in this repo are marked UNKNOWN. UNKNOWN is not a guessed licence.
+SELF-MADE means code we wrote, or Paul's own camera photo. Licence for self-made code is original work owned by Tempered Tees, not a third-party licence. UNVERIFIED is used only where the source is actually unknown. The v8.0, demo, and Creative rows below are not UNVERIFIED. The public root and splash-v7 table is Creative's sourced rows.
 
 ## Shipped in v8.0 (the deploy folder)
 
@@ -59,24 +59,24 @@ The repository root is now the deployed v8 homepage (`index.html`, with `coming-
 
 ## Public root and splash-v7
 
-These files are committed and are served with the public site or the moved splash. No source or licence for them is recorded elsewhere in this repo, so each is UNKNOWN. Coming soon uses the hero tee files already in this table. It adds no new image, font, or audio file.
+These files are committed and are served with the public site or the moved splash. Coming soon uses the hero tee files already in this table. It adds no new image, font, or audio file.
 
-| File | Source | Licence |
-|---|---|---|
-| `favicon.svg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `favicon_32.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `apple_touch_180.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `icon-192.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `icon-512.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `icon-512-maskable.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `og_share_1200x630.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/hero_flat03_1x.avif` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/hero_flat03_1x.webp` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/hero_flat03_1x.jpg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/hero_flat03_2x.avif` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/hero_flat03_2x.webp` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/hero_flat03_2x.jpg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/audio/forge_loop.mp3` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/audio/forge_loop.webm` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
-| `splash-v7/assets/logo_icon.svg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| File | sha256 (12) | Who / how | Licence | AI | Evidence |
+|---|---|---|---|---|---|
+| `favicon.svg` | 7a76a0c3325c | SELF-MADE (code). Byte-identical to research/tee/logo/final/C_icon.svg, a hand-drawn vector built in code from licensed fonts, with no image inputs | Original work, Tempered Tees | NON-AI, hashgrep 0 | Asset_Provenance.md:95, :102, :200 (C_icon sha 7a76a0c3); tools/prov_sources.tsv:18 |
+| `favicon_32.png` | 1354bf53aeb1 | SELF-MADE (code). Rendered from favicon.svg (C_icon) by og_favicons_v2/render.py | Original work, Tempered Tees | NON-AI, hashgrep 0 | Byte-identical to research/tee/Polish_Pass_2026-10-19/og_favicons_v2/favicon_32.png; render.py:7; prov_sources.tsv:9; Asset_Provenance.md:28, :77 |
+| `apple_touch_180.png` | 3db93859c4f9 | SELF-MADE (code). Rendered from favicon.svg on #0F1114 by render.py | Original work, Tempered Tees | NON-AI, hashgrep 0 | Byte-identical to og_favicons_v2/apple_touch_180.png; MANIFEST_ICONS.md:9; render.py:7; prov_sources.tsv:8; Asset_Provenance.md:77 |
+| `icon-192.png` | 2abf7f84df07 | SELF-MADE (code). Rendered from favicon.svg by render_icons.py | Original work, Tempered Tees | NON-AI, hashgrep 0 | Byte-identical to og_favicons_v2/icon-192.png; MANIFEST_ICONS.md:6; prov_sources.tsv:5; Asset_Provenance.md:77 |
+| `icon-512.png` | 0bed2b1c73c6 | SELF-MADE (code). Rendered from favicon.svg | Original work, Tempered Tees | NON-AI, hashgrep 0 | Byte-identical to og_favicons_v2/icon-512.png; MANIFEST_ICONS.md:7; prov_sources.tsv:6; Asset_Provenance.md:77 |
+| `icon-512-maskable.png` | 2d8605565803 | SELF-MADE (code). Rendered from favicon.svg with #0F1114 bleed | Original work, Tempered Tees | NON-AI, hashgrep 0 | Byte-identical to og_favicons_v2/icon-512-maskable.png; MANIFEST_ICONS.md:8; prov_sources.tsv:7; Asset_Provenance.md:77 |
+| `og_share_1200x630.png` | dcd2fb41f174 | Forge (2026-10-23): the PEX og_share (sha a0077832) with only its 2nd text line repainted to "First drops coming soon." via tools/og_v723/text_line.html. Inputs: fire = Pexels video 5659686 (https://www.pexels.com/video/a-burning-fire-on-black-background-5659686/); tee = Pexels 8532616 (Hanna Pad, "A Black Shirt Hanging on the Wall"); text = Space Grotesk subset | Pexels License (free commercial use, no attribution required) + SIL OFL 1.1 font | NON-AI, hashgrep 0 | Byte-identical to product/tempered-tees-site/tools/og_v723/og_share_v723.png; prov_sources.tsv:29, :21; og_favicons_v3/LICENSES.md:25 (Pexels 5659686), L3 (Pexels 8532616); Asset_Provenance.md:26, :140 |
+| `splash-v7/assets/hero_flat03_1x.avif` | a59680d3e0d8 | SELF-MADE (Paul's camera photo). flat_03.jpg from a Samsung Galaxy Z Fold8, 2026-10-21; classic non-generative edits (hero_v1.1) | Original work, Tempered Tees (Paul's photo) | NON-AI, hashgrep 0 | Byte-identical to research/tee/photos/hero_v1.1/hero_flat03_1x.avif; signoffs/splash_v7.2_OWN-PHOTO.txt:1-3; prov_sources.tsv:24; creative/design-direction-v2.3.1/Provenance_PR2.md:13 (EXIF) |
+| `splash-v7/assets/hero_flat03_1x.webp` | a3adfb9a9fc6 | Same as above | Same | NON-AI, hashgrep 0 | hero_v1.1/hero_flat03_1x.webp; signoff file; prov_sources.tsv:23 |
+| `splash-v7/assets/hero_flat03_1x.jpg` | 08da57b2a849 | Same as above | Same | NON-AI, hashgrep 0 | hero_v1.1/hero_flat03_1x.jpg; signoff file; prov_sources.tsv:25 |
+| `splash-v7/assets/hero_flat03_2x.avif` | 9efc27f78014 | Same as above | Same | NON-AI, hashgrep 0 | hero_v1.1/hero_flat03_2x.avif; signoff file; prov_sources.tsv:27 |
+| `splash-v7/assets/hero_flat03_2x.webp` | 6c2baba79c27 | Same as above | Same | NON-AI, hashgrep 0 | hero_v1.1/hero_flat03_2x.webp; signoff file; prov_sources.tsv:26 |
+| `splash-v7/assets/hero_flat03_2x.jpg` | 601a1c1b98db | Same as above | Same | NON-AI, hashgrep 0 | hero_v1.1/hero_flat03_2x.jpg; signoff file; prov_sources.tsv:28 |
+| `splash-v7/assets/audio/forge_loop.mp3` | b2c71ed59da5 | SELF-MADE (code). Synthesized by research/tee/Splash_Page_DRAFT/final_B_v7/make_forge_audio.py (sha 1b1c51c6..., pure numpy, seeded, no file inputs) -> WAV -> libmp3lame 64k | Original work, Tempered Tees | NON-AI, hashgrep 0 | prov_sources.tsv:19; Asset_Provenance.md:78; byte-identical to product/tempered-tees-site/_prev/audio_prev_20261019_031032/forge_loop.mp3 |
+| `splash-v7/assets/audio/forge_loop.webm` | 2b676d955b70 | SELF-MADE (code). Same script, libopus 40k re-encode | Original work, Tempered Tees | NON-AI, hashgrep 0 | prov_sources.tsv:20; Asset_Provenance.md:78 |
+| `splash-v7/assets/logo_icon.svg` | 7a76a0c3325c | SELF-MADE (code). Byte-identical to C_icon.svg (same file as favicon.svg) | Original work, Tempered Tees | NON-AI, hashgrep 0 | Asset_Provenance.md:24, :95, :102, :200 |
 
