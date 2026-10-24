@@ -48,7 +48,7 @@ const browser = await chromium.launch({
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 
-async function open(width, file, reduced) {
+async function open(width, file, reduced, url) {
   const page = await browser.newPage({ viewport: { width, height: width < 768 ? 844 : 900 }, deviceScaleFactor: 1 });
   if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
   const external = [];
@@ -65,9 +65,10 @@ async function open(width, file, reduced) {
     if (msg.type() === "error") consoleErrors.push(msg.text());
   });
   page.on("pageerror", (err) => consoleErrors.push(String(err)));
-  await page.goto(base + file, { waitUntil: "domcontentloaded" });
+  await page.goto(url || base + file, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.frame === "ready");
-  if (file === "artist.html") {
+  const demoProfile = Boolean(url && url.includes("/_demo/"));
+  if (demoProfile) {
     await page.waitForFunction(() => document.documentElement.dataset.profile === "ready");
     await page.evaluate(async () => {
       const panels = [...document.querySelectorAll(".panel")];
@@ -107,9 +108,15 @@ for (const [name, file] of pages) {
     if (session.bad.length) fail(`${name} ${width} bad responses: ${session.bad.join(", ")}`);
     if (session.consoleErrors.length) fail(`${name} ${width} console: ${session.consoleErrors.join(" | ")}`);
     if (overflow) fail(`${name} ${width} horizontal overflow`);
-    if ((name === "home" || name === "product") && label !== "Ends tonight 11:59 PM CT") {
+    const price = await session.page.locator("[data-drop-price]").count()
+      ? await session.page.locator("[data-drop-price]").first().textContent()
+      : null;
+    row.price = price;
+    if ((name === "home" || name === "product") && label !== "Starts Sat, Dec 12, 12:00 AM CT") {
       fail(`${name} ${width} drop label ${JSON.stringify(label)}`);
     }
+    if (label && /tonight|Last chance/i.test(label)) fail(`${name} ${width} claims a live window ${JSON.stringify(label)}`);
+    if (price) fail(`${name} ${width} showed a price ${JSON.stringify(price)}`);
     await session.page.close();
   }
 }
@@ -201,6 +208,85 @@ async function tabNames(page, count) {
 
 {
   const session = await open(1440, "artist.html");
+  const fallback = await session.page.evaluate(() => {
+    const avatar = getComputedStyle(document.querySelector(".avatar")).backgroundColor;
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--theme-accent").trim();
+    const probe = document.createElement("div");
+    probe.className = "panel";
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "scr");
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    svg.appendChild(rect);
+    probe.appendChild(svg);
+    document.body.appendChild(probe);
+    const stroke = getComputedStyle(rect).stroke;
+    probe.remove();
+    return {
+      avatar,
+      accent,
+      stroke,
+      bio: document.querySelector("[data-field=bio]").textContent,
+      profile: document.documentElement.dataset.profile || "",
+    };
+  });
+  report.reveal = { published: fallback };
+  if (fallback.avatar !== "rgb(232, 100, 44)" || fallback.stroke !== "rgb(232, 100, 44)" || fallback.accent !== "") {
+    fail(`reveal fallback was not red #E8642C ${JSON.stringify(fallback)}`);
+  }
+  if (fallback.bio !== "" || fallback.profile) fail(`published artist rendered a demo theme ${JSON.stringify(fallback)}`);
+  await session.page.close();
+}
+
+const demoBase = "http://127.0.0.1:8765/_demo/artist.html";
+for (const width of widths) {
+  const session = await open(width, "artist.html", false, demoBase);
+  const shot = path.join(outDir, `artist_demo_${width}.png`);
+  await session.page.screenshot({ path: shot, fullPage: true });
+  report.pages.push({
+    name: "artist-demo",
+    width,
+    shot,
+    external: session.external,
+    bad: session.bad,
+    consoleErrors: session.consoleErrors,
+  });
+  if (session.external.length) fail(`artist-demo ${width} external requests: ${session.external.join(", ")}`);
+  if (session.bad.length) fail(`artist-demo ${width} bad responses: ${session.bad.join(", ")}`);
+  if (session.consoleErrors.length) fail(`artist-demo ${width} console: ${session.consoleErrors.join(" | ")}`);
+  const overflow = await session.page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  if (overflow) fail(`artist-demo ${width} horizontal overflow`);
+  await session.page.close();
+}
+
+{
+  const session = await open(1440, "artist.html", false, demoBase);
+  const gold = await session.page.evaluate(() => {
+    const stroke = getComputedStyle(document.querySelector(".panel svg.scr rect")).stroke;
+    const avatar = getComputedStyle(document.querySelector(".avatar")).backgroundColor;
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--theme-accent").trim();
+    const links = [...document.querySelectorAll(".panel a")].map((a) => ({
+      href: a.getAttribute("href"),
+      rel: a.getAttribute("rel"),
+      target: a.getAttribute("target"),
+    }));
+    return {
+      stroke,
+      avatar,
+      accent,
+      links,
+      bio: document.querySelector("[data-field=bio]").textContent,
+      panels: document.querySelectorAll(".panel").length,
+    };
+  });
+  report.reveal.demo = gold;
+  if (gold.stroke !== "rgb(217, 180, 90)" || gold.avatar !== "rgb(217, 180, 90)" || gold.accent.toUpperCase() !== "#D9B45A") {
+    fail(`reveal accent was not gold #D9B45A ${JSON.stringify(gold)}`);
+  }
+  if (gold.panels !== 4) fail(`demo panels ${gold.panels}`);
+  if (!gold.links.length || gold.links.some((link) => link.rel !== "noopener noreferrer" || link.target !== "_blank" || !String(link.href).startsWith("https://"))) {
+    fail(`artist link rel ${JSON.stringify(gold.links)}`);
+  }
+  if (gold.links.some((link) => /nofollow|ugc/.test(link.rel))) fail("nofollow or ugc was added");
   const bio = await session.page.evaluate((payload) => {
     const host = document.createElement("main");
     ["name", "bio"].forEach((field) => {
@@ -245,6 +331,43 @@ async function tabNames(page, count) {
   if (bio.liveBio !== "Placeholder bio for testing the theme loader. Not a real artist." || bio.liveChildren !== 0) {
     fail(`live bio was not plain text ${JSON.stringify(bio.liveBio)}`);
   }
+  const capped = await session.page.evaluate(() => {
+    const big = "B".repeat(20000);
+    const host = document.createElement("main");
+    host.setAttribute("data-layout", "profile");
+    host.style.width = "320px";
+    const bioNode = document.createElement("p");
+    bioNode.setAttribute("data-field", "bio");
+    host.appendChild(bioNode);
+    const panels = document.createElement("div");
+    panels.setAttribute("data-slot", "panels");
+    host.appendChild(panels);
+    document.body.appendChild(host);
+    window.TT.renderProfile(host, {
+      artist: { name: big, bio: big },
+      tokens: {},
+      profile: { panels: [{ type: "about", title: big, text: big }] },
+    });
+    const bioEl = host.querySelector("[data-field=bio]");
+    const textEl = host.querySelector(".panel .pb p");
+    const titleEl = host.querySelector(".panel h3");
+    const result = {
+      bio: bioEl.textContent.length,
+      name: host.querySelector("[data-field=name]") ? host.querySelector("h1").textContent.length : 0,
+      title: titleEl.textContent.length,
+      text: textEl.textContent.length,
+      children: bioEl.childElementCount,
+      wrap: getComputedStyle(bioEl).overflowWrap,
+      overflow: bioEl.scrollWidth > host.clientWidth + 1,
+    };
+    host.remove();
+    return result;
+  });
+  report.h1.cap = capped;
+  if (capped.bio !== 600 || capped.title !== 40 || capped.text !== 300 || capped.children !== 0 || capped.overflow) {
+    fail(`20k bio was not clipped ${JSON.stringify(capped)}`);
+  }
+  if (capped.wrap !== "anywhere") fail(`bio overflow-wrap ${capped.wrap}`);
   const computed = await session.page.evaluate(() => {
     const body = getComputedStyle(document.body);
     const muted = getComputedStyle(document.querySelector(".pf-sub"));

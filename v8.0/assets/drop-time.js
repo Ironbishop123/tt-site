@@ -1,8 +1,8 @@
-/* Drop window in America/Chicago.
-   A drop starts at local midnight and ends at local 23:59:59 the same civil day.
-   The end label is built from starts_at and ends_at. It is never typed into the page.
+/* Drop state machine (spec v0.7 §3). America/Chicago only.
    Offsets come from the zone. This file does not hardcode a UTC offset.
-   No drop may start on a DST-change day. */
+   Labels and prices are generated from the drop record. Prices are never invented.
+   status_override wins. The view is recomputed from the clock so it morphs at zero
+   without a reload. A DST-change day produces no label. */
 (function (global) {
   var ZONE = "America/Chicago";
 
@@ -79,11 +79,18 @@
     return p.year + "-" + pad(p.month) + "-" + pad(p.day) + "T" + pad(p.hour) + ":" + pad(p.minute) + ":" + pad(p.second) + sign + pad(Math.floor(abs / 60)) + ":" + pad(abs % 60);
   }
 
+  function nextCalendarDay(y, mo, d) {
+    var utc = new Date(Date.UTC(y, mo - 1, d));
+    utc.setUTCDate(utc.getUTCDate() + 1);
+    return { year: utc.getUTCFullYear(), month: utc.getUTCMonth() + 1, day: utc.getUTCDate() };
+  }
+
   function isDstChangeDay(y, mo, d) {
     var start = wallToDate(y, mo, d, 0, 0, 0);
-    var end = wallToDate(y, mo, d, 23, 59, 59);
+    var next = nextCalendarDay(y, mo, d);
+    var end = wallToDate(next.year, next.month, next.day, 0, 0, 0);
     if (!start || !end) return true;
-    return offsetMinutes(start) !== offsetMinutes(end);
+    return end.getTime() - start.getTime() !== 86400000;
   }
 
   function parseIso(iso) {
@@ -112,24 +119,125 @@
     return new Intl.DateTimeFormat("en-US", { timeZone: ZONE, month: "short" }).format(date);
   }
 
-  function dropEndLabel(drop, now) {
-    now = now || new Date();
-    if (!drop || drop.starts_at == null || drop.ends_at == null) return "";
-    var start = parseIso(drop.starts_at);
-    var end = parseIso(drop.ends_at);
-    if (!start || !end) return "";
+  function absolute(date) {
+    var p = parts(date);
+    return p.weekday + ", " + monthName(date) + " " + p.day + ", " + clock(p);
+  }
+
+  function endPhrase(prefix, end, now) {
+    var ep = parts(end);
+    var time = clock(ep);
+    if (sameDay(ep, parts(now))) {
+      if (prefix === "Ends") return "Ends tonight " + time + " CT";
+      return prefix + " tonight " + time + " CT";
+    }
+    return prefix + " " + ep.weekday + ", " + monthName(end) + " " + ep.day + ", " + time + " CT";
+  }
+
+  function priceOf(value) {
+    if (typeof value !== "number" || !isFinite(value)) return null;
+    return value;
+  }
+
+  function formatPrice(value) {
+    if (value == null) return "";
+    return "$" + value.toFixed(2);
+  }
+
+  function countdownText(deadlineMs, nowMs) {
+    if (deadlineMs == null) return "";
+    var left = deadlineMs - nowMs;
+    if (left < 0) left = 0;
+    var total = Math.floor(left / 1000);
+    var h = Math.floor(total / 3600);
+    var m = Math.floor((total % 3600) / 60);
+    var s = total % 60;
+    return pad(h) + ":" + pad(m) + ":" + pad(s);
+  }
+
+  function emptyView() {
+    return { state: "", label: "", price: null, priceText: "", countdown: "", countdownTo: null };
+  }
+
+  function localDayOk(start, end) {
     var sp = parts(start);
     var ep = parts(end);
-    if (sp.hour !== 0 || sp.minute !== 0 || sp.second !== 0) return "";
-    if (ep.hour !== 23 || ep.minute !== 59 || ep.second !== 59) return "";
-    if (!sameDay(sp, ep)) return "";
-    if (isDstChangeDay(sp.year, sp.month, sp.day)) return "";
-    var time = clock(ep);
-    if (sameDay(ep, parts(now))) return "Ends tonight " + time + " CT";
-    return "Ends " + ep.weekday + ", " + monthName(end) + " " + ep.day + ", " + time + " CT";
+    if (sp.hour !== 0 || sp.minute !== 0 || sp.second !== 0) return false;
+    if (ep.hour !== 23 || ep.minute !== 59 || ep.second !== 59) return false;
+    if (!sameDay(sp, ep)) return false;
+    if (isDstChangeDay(sp.year, sp.month, sp.day)) return false;
+    if (end.getTime() + 1000 - start.getTime() !== 86400000) return false;
+    return true;
+  }
+
+  function dropView(drop, now) {
+    now = now || new Date();
+    if (!drop) return emptyView();
+    if (drop.status_override === "sold_out") {
+      return { state: "sold_out", label: "Sold out", price: null, priceText: "", countdown: "", countdownTo: null };
+    }
+    if (drop.status_override === "pulled") {
+      return { state: "pulled", label: "Unavailable", price: null, priceText: "", countdown: "", countdownTo: null };
+    }
+    if (drop.status_override != null) return emptyView();
+    var start = parseIso(drop.starts_at);
+    var end = parseIso(drop.ends_at);
+    var lcStart = parseIso(drop.last_chance_starts_at);
+    var lcEnd = parseIso(drop.last_chance_ends_at);
+    if (!start || !end || !lcStart || !lcEnd) return emptyView();
+    if (!localDayOk(start, end) || !localDayOk(lcStart, lcEnd)) return emptyView();
+    if (end.getTime() + 1000 !== lcStart.getTime()) return emptyView();
+    var nowMs = now.getTime();
+    var state;
+    var label;
+    var price;
+    var countdownTo = null;
+    if (nowMs < start.getTime()) {
+      state = "upcoming";
+      label = "Starts " + absolute(start) + " CT";
+      price = priceOf(drop.live_price);
+    } else if (nowMs < end.getTime() + 1000) {
+      state = "live";
+      label = endPhrase("Ends", end, now);
+      price = priceOf(drop.live_price);
+      countdownTo = end.getTime() + 1000;
+    } else if (nowMs < lcEnd.getTime() + 1000) {
+      state = "last_chance";
+      label = endPhrase("Last chance · ends", lcEnd, now);
+      price = priceOf(drop.last_chance_price);
+      countdownTo = lcEnd.getTime() + 1000;
+    } else {
+      state = "vault";
+      label = "In the Vault";
+      price = priceOf(drop.vault_price);
+    }
+    return {
+      state: state,
+      label: label,
+      price: price,
+      priceText: formatPrice(price),
+      countdown: countdownText(countdownTo, nowMs),
+      countdownTo: countdownTo
+    };
+  }
+
+  function watchDrop(drop, render, nowFn, intervalMs) {
+    function tick() {
+      var clockNow = typeof nowFn === "function" ? nowFn() : new Date();
+      render(dropView(drop, clockNow));
+    }
+    tick();
+    var timer = setInterval(tick, intervalMs == null ? 1000 : intervalMs);
+    return function stop() { clearInterval(timer); };
+  }
+
+  function dropEndLabel(drop, now) {
+    return dropView(drop, now).label;
   }
 
   global.TT = global.TT || {};
+  global.TT.dropView = dropView;
+  global.TT.watchDrop = watchDrop;
   global.TT.dropEndLabel = dropEndLabel;
   global.TT.isDstChangeDay = isDstChangeDay;
   global.TT.formatChicagoIso = formatChicagoIso;

@@ -1,9 +1,20 @@
 /* Shared frame. Nav and footer text come from assets/site.json.
-   Drop labels come from data/drops.json through TT.dropEndLabel.
-   DOM writes use textContent and createElement. Artist slots are not filled. */
+   One drop per screen. Label, countdown, and price come from data/drops.json
+   through TT.dropView and refresh every second so the state morphs at zero.
+   DOM writes use textContent and createElement. */
 (function () {
   var root = document.documentElement;
   root.classList.add("js");
+  var siteBase = root.getAttribute("data-site-base") || "";
+
+  function siteUrl(path) {
+    return siteBase + path;
+  }
+
+  function pageHref(href) {
+    if (!siteBase || !href || /^(https?:|\/|\.\.)/.test(href)) return href;
+    return siteBase + href;
+  }
 
   function clear(node) {
     while (node.firstChild) node.removeChild(node.firstChild);
@@ -16,7 +27,7 @@
 
   function link(item, file) {
     var a = document.createElement("a");
-    a.href = item.href;
+    a.href = pageHref(item.href);
     a.textContent = item.label;
     if (item.href === file) a.setAttribute("aria-current", "page");
     return a;
@@ -39,7 +50,7 @@
       }
       var cart = header.querySelector(".cart");
       if (cart && data.cart) {
-        cart.setAttribute("href", data.cart.href);
+        cart.setAttribute("href", pageHref(data.cart.href));
         cart.textContent = data.cart.label;
       }
     }
@@ -90,33 +101,43 @@
     });
   }
 
+  function paintDrop(view) {
+    document.querySelectorAll("[data-drop-label]").forEach(function (node) {
+      node.textContent = view.label || "";
+      if (view.state) node.setAttribute("data-state", view.state);
+      else node.removeAttribute("data-state");
+    });
+    document.querySelectorAll("[data-drop-countdown]").forEach(function (node) {
+      node.textContent = view.countdown || "";
+    });
+    document.querySelectorAll("[data-drop-price]").forEach(function (node) {
+      node.textContent = view.priceText || "";
+      if (view.price == null) node.removeAttribute("data-price");
+      else node.setAttribute("data-price", String(view.price));
+    });
+  }
+
   function showDrop() {
-    var nodes = document.querySelectorAll("[data-drop-label]");
-    if (!nodes.length || !window.TT || !TT.dropEndLabel) return Promise.resolve();
-    return fetch("data/drops.json").then(function (response) {
+    var nodes = document.querySelectorAll("[data-drop-label], [data-drop-price], [data-drop-countdown]");
+    if (!nodes.length || !window.TT || !TT.watchDrop) return Promise.resolve();
+    return fetch(siteUrl("data/drops.json")).then(function (response) {
       if (!response.ok) throw new Error("drops");
       return response.json();
     }).then(function (data) {
       var drops = data && Array.isArray(data.drops) ? data.drops : [];
-      var now = new Date();
-      var label = "";
-      var i;
-      for (i = 0; i < drops.length; i += 1) {
-        label = TT.dropEndLabel(drops[i], now);
-        if (label) break;
+      var drop = drops[0];
+      if (!drop) {
+        paintDrop({ label: "", countdown: "", priceText: "", price: null, state: "" });
+        return;
       }
-      nodes.forEach(function (node) {
-        node.textContent = label || "";
-      });
+      TT.watchDrop(drop, paintDrop);
     }).catch(function () {
-      nodes.forEach(function (node) {
-        node.textContent = "";
-      });
+      paintDrop({ label: "", countdown: "", priceText: "", price: null, state: "" });
     });
   }
 
   wireMenu();
-  var siteReady = fetch("assets/site.json").then(function (response) {
+  var siteReady = fetch(siteUrl("assets/site.json")).then(function (response) {
     if (!response.ok) throw new Error("site");
     return response.json();
   }).then(applySite).catch(function () {});

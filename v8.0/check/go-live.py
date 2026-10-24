@@ -8,11 +8,12 @@ Drop instants are computed with zoneinfo America/Chicago. Offsets are not typed.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import re
 import subprocess
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -20,8 +21,9 @@ ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parent
 CT = ZoneInfo("America/Chicago")
 TOKENS_SHA256 = "7fca022245fc6687c827efa1a0386bf3f146f38a5b3a72c883ab9f2e2fefdcd0"
-PLACEHOLDER_DAY = date(2026, 10, 24)
 PAGES = ("index.html", "product.html", "vault.html", "artist.html", "about.html", "cart.html")
+DEMO_PAGE = REPO / "_demo" / "artist.html"
+PUBLISHED_BAN = ("example.com", "demo-artist")
 LAYOUTS = {
     "index.html": "hero",
     "product.html": "product",
@@ -54,42 +56,20 @@ def contrast(a: str, b: str) -> float:
     return (hi + 0.05) / (lo + 0.05)
 
 
-def iso(moment: datetime) -> str:
-    return moment.isoformat()
-
-
-def window_for(day: date) -> tuple[str, str]:
-    start = datetime(day.year, day.month, day.day, 0, 0, 0, tzinfo=CT)
-    end = datetime(day.year, day.month, day.day, 23, 59, 59, tzinfo=CT)
-    return iso(start), iso(end)
-
-
 def is_dst_change(day: date) -> bool:
     start = datetime(day.year, day.month, day.day, 0, 0, 0, tzinfo=CT)
     end = datetime(day.year, day.month, day.day, 23, 59, 59, tzinfo=CT)
     return start.utcoffset() != end.utcoffset()
 
 
-def placeholder_record() -> dict:
-    if is_dst_change(PLACEHOLDER_DAY):
-        raise SystemExit("placeholder day is a DST-change day")
-    starts, ends = window_for(PLACEHOLDER_DAY)
-    return {
-        "id": "placeholder",
-        "artist_id": None,
-        "design_ids": [],
-        "starts_at": starts,
-        "ends_at": ends,
-        "status_override": None,
-        "theme": None,
-        "placeholder": True,
-    }
-
-
-def write_drops() -> None:
-    payload = {"zone": "America/Chicago", "drops": [placeholder_record()]}
-    path = ROOT / "data" / "drops.json"
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+def load_drops_check():
+    path = REPO / "docs" / "tools" / "drops_check.py"
+    spec = importlib.util.spec_from_file_location("drops_check", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("drops_check.py missing")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def strip_js_comments(text: str) -> str:
@@ -105,8 +85,6 @@ def token_pairs() -> dict[str, str]:
 
 
 def main() -> int:
-    if "--write-drops" in sys.argv:
-        write_drops()
     failures: list[str] = []
 
     tokens = ROOT / "assets" / "tokens.css"
@@ -148,8 +126,11 @@ def main() -> int:
             failures.append(f"{name} layout is not {LAYOUTS[name]}")
         if "default-src 'self'" not in text or "shopify" in text.lower():
             failures.append(f"{name} CSP is not all-self")
-        if "Ends tonight" in text or "11:59" in text:
+        if "Ends tonight" in text or "11:59" in text or "Last chance" in text:
             failures.append(f"{name} types a drop label")
+        for banned in PUBLISHED_BAN:
+            if banned in text:
+                failures.append(f"{name} is a published page and contains {banned}")
         if "fonts.googleapis" in text or "cdn." in text:
             failures.append(f"{name} references an external host")
         if re.search(r'(href|src)="/', text):
@@ -172,6 +153,7 @@ def main() -> int:
         failures.append("artist page inline SVG must be only the site outline template")
     second = REPO / "docs" / "tools" / "svg_second_pass.py"
     svgs = sorted(str(p) for p in (ROOT / "assets").rglob("*.svg"))
+    svgs += sorted(str(p) for p in (REPO / "_demo").rglob("*.svg"))
     if second.exists() and svgs:
         run = subprocess.run([sys.executable, str(second), *svgs], capture_output=True, text=True)
         if run.returncode != 0:
@@ -188,24 +170,47 @@ def main() -> int:
     if "PROV record" not in (ROOT / "assets" / "logo" / "L2_badge.svg").read_text(encoding="utf-8"):
         failures.append("L2 badge is missing the PROV TODO")
 
-    for day, refused in ((date(2026, 11, 1), True), (date(2027, 3, 14), True), (date(2026, 12, 12), False), (PLACEHOLDER_DAY, False)):
+    for day, refused in (
+        (date(2026, 11, 1), True),
+        (date(2027, 3, 14), True),
+        (date(2027, 11, 7), True),
+        (date(2026, 12, 12), False),
+        (date(2026, 10, 24), False),
+    ):
         if is_dst_change(day) != refused:
             failures.append(f"DST check wrong for {day.isoformat()}")
-    record = placeholder_record()
     drops_path = ROOT / "data" / "drops.json"
     if not drops_path.exists():
         failures.append("data/drops.json missing")
     else:
         saved = json.loads(drops_path.read_text(encoding="utf-8"))
-        if saved.get("zone") != "America/Chicago" or saved.get("drops") != [record]:
-            failures.append("drops.json does not match the Chicago window for the placeholder day")
-        drop = saved["drops"][0]
-        start = datetime.fromisoformat(drop["starts_at"])
-        end = datetime.fromisoformat(drop["ends_at"])
-        if (end - start).total_seconds() != 86399:
-            failures.append("placeholder drop is not midnight through 23:59:59")
-        if start.utcoffset() != start.astimezone(CT).utcoffset() or end.utcoffset() != end.astimezone(CT).utcoffset():
-            failures.append("placeholder offset does not match America/Chicago")
+        drops = saved.get("drops")
+        if not isinstance(drops, list) or len(drops) != 1:
+            failures.append("drops.json must hold one placeholder drop")
+        else:
+            drop = drops[0]
+            start = datetime.fromisoformat(drop["starts_at"])
+            end = datetime.fromisoformat(drop["ends_at"])
+            lc_start = datetime.fromisoformat(drop["last_chance_starts_at"])
+            lc_end = datetime.fromisoformat(drop["last_chance_ends_at"])
+            if (end + timedelta(seconds=1) - start).total_seconds() != 86400:
+                failures.append("placeholder LIVE day is not 86400 s in UTC")
+            if (lc_end + timedelta(seconds=1) - lc_start).total_seconds() != 86400:
+                failures.append("placeholder LAST CHANCE day is not 86400 s in UTC")
+            today = datetime.now(CT).date()
+            if start.astimezone(CT).date() == today or lc_start.astimezone(CT).date() == today:
+                failures.append("placeholder drop falls on today and can claim Ends tonight")
+            if any(drop[key] is not None for key in ("live_price", "last_chance_price", "vault_price")):
+                failures.append("placeholder prices must stay null until Arthur sets them")
+            checker = load_drops_check()
+            errors = checker.check(drop, publish=False)
+            if errors:
+                failures.append("drops_check.py: " + "; ".join(errors))
+            if not checker.check(drop, publish=True):
+                failures.append("drops_check.py --publish did not block null prices")
+            cli = subprocess.run([sys.executable, str(REPO / "docs" / "tools" / "drops_check.py"), str(drops_path)], capture_output=True, text=True)
+            if cli.returncode != 0:
+                failures.append("drops_check.py CLI failed: " + (cli.stdout or cli.stderr).strip())
 
     colors = token_pairs()
     pairs = [
@@ -223,6 +228,31 @@ def main() -> int:
         contrast_lines.append(f"{fg} on {bg}: {ratio:.2f}:1")
         if ratio < minimum:
             failures.append(f"contrast {fg} on {bg} is {ratio:.2f}, need {minimum}")
+
+    if not DEMO_PAGE.exists() or "noindex" not in DEMO_PAGE.read_text(encoding="utf-8"):
+        failures.append("demo artist page is missing or is not noindex")
+    if DEMO_PAGE.exists() and "v8.0" in DEMO_PAGE.parts:
+        failures.append("demo artist page is inside the deploy folder")
+    if any(path.name == "demo-artist" for path in ROOT.rglob("*")):
+        failures.append("demo-artist assets are inside the v8.0 deploy folder")
+    for banned_name in ("tee_1800.webp", "crumpled_02_2x.webp", "crumpled_03_2x.webp", "print.svg"):
+        hits = [str(path.relative_to(REPO)) for path in REPO.rglob(banned_name)]
+        if hits:
+            failures.append(f"{banned_name} is in the tree ({', '.join(hits)}); Paul's photos and the placeholder print stay out of the deploy")
+    states = subprocess.run(["node", str(ROOT / "check" / "drop-states.mjs")], capture_output=True, text=True)
+    print(states.stdout.strip())
+    if states.returncode != 0:
+        failures.append("drop state machine tests failed")
+        if states.stderr.strip():
+            print(states.stderr.strip())
+    if "checkout-match: PENDING" not in states.stdout:
+        failures.append("G20 checkout-match pending note is missing")
+    sanitize = subprocess.run(["node", str(REPO / "docs" / "tools" / "test_sanitize.mjs")], capture_output=True, text=True)
+    print(sanitize.stdout.strip())
+    if sanitize.returncode != 0:
+        failures.append("svg sanitizer test failed: " + (sanitize.stderr or sanitize.stdout).strip())
+    if "nofollow" in (ROOT / "assets" / "profile.js").read_text(encoding="utf-8") or "ugc" in (ROOT / "assets" / "profile.js").read_text(encoding="utf-8"):
+        failures.append("artist links must not add nofollow or ugc")
 
     frozen = REPO / "assets" / "splash.css"
     frozen_hits = len(OLD_TOKEN.findall(frozen.read_text(encoding="utf-8"))) if frozen.exists() else 0

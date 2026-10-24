@@ -1,0 +1,4 @@
+{"drops": [{"id": "sample-drop", "artist_id": "demo-artist", "design_ids": ["sample-design"],
+ "starts_at": "2026-12-12T00:00:00-06:00", "ends_at": "2026-12-12T23:59:59-06:00",
+ "last_chance_starts_at": "2026-12-13T00:00:00-06:00", "last_chance_ends_at": "2026-12-13T23:59:59-06:00",
+ "live_price": null, "last_chance_price": null, "vault_price": null, "status_override": null, "theme": null}]}

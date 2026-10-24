@@ -16,8 +16,23 @@
     process_gallery: "assets/icons/process.svg"
   };
   var PANEL_HEIGHTS = { 80: 1, 160: 1, 240: 1, 320: 1 };
+  var CAPS = { name: 60, bio: 600, title: 40, text: 300, alt: 120, label: 40 };
   var COLOR_KEY = /^--color-(bg|surface|text|text-muted|accent|accent-contrast|line|link)$/;
   var EL_KEY = /^--el-(core|hot|mid|cool|smoke)$/;
+  function siteUrl(path) {
+    var base = document.documentElement.getAttribute("data-site-base") || "";
+    return base + path;
+  }
+
+  function themeUrl(src) {
+    var base = document.documentElement.getAttribute("data-theme-base") || "";
+    return base + src;
+  }
+
+  function clip(value, max) {
+    var s = value == null ? "" : String(value);
+    return s.length > max ? s.slice(0, max) : s;
+  }
 
   function text(node, value) {
     if (global.TT && TT.renderThemeText) TT.renderThemeText(node, value);
@@ -64,21 +79,31 @@
   }
 
   function applyTokens(tokens) {
-    if (!tokens || typeof tokens !== "object") return;
+    if (!tokens || typeof tokens !== "object") {
+      document.documentElement.style.removeProperty("--theme-accent");
+      return;
+    }
     var accent = tokens["--color-accent"];
     var onAccent = tokens["--color-accent-contrast"];
     if (typeof accent === "string" && typeof onAccent === "string" && HEX.test(accent) && HEX.test(onAccent)) {
-      if (contrast(onAccent, accent) < 4.5) return;
+      if (contrast(onAccent, accent) < 4.5) {
+        document.documentElement.style.removeProperty("--theme-accent");
+        return;
+      }
     }
+    var themeAccent = "";
     Object.keys(tokens).forEach(function (key) {
       if (key === "--color-focus" || key === "--el-speed" || key === "--el-intensity") return;
       var value = tokens[key];
       if ((COLOR_KEY.test(key) || EL_KEY.test(key)) && typeof value === "string" && HEX.test(value)) {
         document.documentElement.style.setProperty(key, value);
+        if (key === "--color-accent") themeAccent = value;
       } else if (key === "--font-display" && (value === "Space Grotesk" || value === "Inter")) {
         document.documentElement.style.setProperty(key, '"' + value + '", system-ui, sans-serif');
       }
     });
+    if (themeAccent) document.documentElement.style.setProperty("--theme-accent", themeAccent);
+    else document.documentElement.style.removeProperty("--theme-accent");
   }
 
   function strokeNode() {
@@ -92,7 +117,7 @@
     var href = safeHref(link.url);
     if (!href) return;
     var a = document.createElement("a");
-    text(a, link.label || "");
+    text(a, clip(link.label || "", CAPS.label));
     a.setAttribute("href", href);
     a.setAttribute("target", "_blank");
     a.setAttribute("rel", "noopener noreferrer");
@@ -105,8 +130,8 @@
     if (!src || !PANEL_HEIGHTS[image.height]) return;
     var img = document.createElement("img");
     img.className = "wip";
-    img.setAttribute("src", src);
-    img.setAttribute("alt", image.alt == null ? "" : String(image.alt));
+    img.setAttribute("src", themeUrl(src));
+    img.setAttribute("alt", clip(image.alt, CAPS.alt));
     img.setAttribute("width", "320");
     img.setAttribute("height", String(image.height));
     parent.appendChild(img);
@@ -119,17 +144,17 @@
     el.appendChild(strokeNode());
     var icon = document.createElement("img");
     icon.className = "icon";
-    icon.setAttribute("src", ICONS[panel.type] || "assets/icons/about.svg");
+    icon.setAttribute("src", siteUrl(ICONS[panel.type] || "assets/icons/about.svg"));
     icon.setAttribute("alt", "");
     el.appendChild(icon);
     var body = document.createElement("div");
     body.className = "pb";
     var title = document.createElement("h3");
-    text(title, panel.title || "");
+    text(title, clip(panel.title || "", CAPS.title));
     body.appendChild(title);
     if (panel.text) {
       var copy = document.createElement("p");
-      text(copy, panel.text);
+      text(copy, clip(panel.text, CAPS.text));
       body.appendChild(copy);
     }
     addLink(body, panel.link);
@@ -145,8 +170,8 @@
     var profile = theme.profile || {};
     var name = root.querySelector("[data-field=name]");
     var bio = root.querySelector("[data-field=bio]");
-    if (name) text(name, artist.name || "");
-    if (bio) text(bio, artist.bio || "");
+    if (name) text(name, clip(artist.name || "", CAPS.name));
+    if (bio) text(bio, clip(artist.bio || "", CAPS.bio));
 
     var banner = root.querySelector("[data-slot=banner]");
     if (banner) {
@@ -159,7 +184,7 @@
         if (!(opacity >= 0) || opacity > 0.35) opacity = 0.08;
         var overlay = document.createElement("div");
         overlay.className = "texture";
-        overlay.style.backgroundImage = 'url("' + textureSrc + '")';
+        overlay.style.backgroundImage = 'url("' + themeUrl(textureSrc) + '")';
         overlay.style.backgroundSize = "64px 64px";
         overlay.style.opacity = String(opacity);
         banner.appendChild(overlay);
@@ -168,8 +193,8 @@
       if (bannerSrc) {
         var pic = document.createElement("img");
         pic.className = "banner-art";
-        pic.setAttribute("src", bannerSrc);
-        pic.setAttribute("alt", profile.banner.alt == null ? "" : String(profile.banner.alt));
+        pic.setAttribute("src", themeUrl(bannerSrc));
+        pic.setAttribute("alt", clip(profile.banner.alt, CAPS.alt));
         banner.appendChild(pic);
       }
     }
@@ -180,7 +205,7 @@
       var frameSrc = profile.avatar_frame ? asset(profile.avatar_frame.src, ["svg", "png"]) : "";
       if (frameSrc) {
         var frame = document.createElement("img");
-        frame.setAttribute("src", frameSrc);
+        frame.setAttribute("src", themeUrl(frameSrc));
         frame.setAttribute("alt", "");
         avatar.appendChild(frame);
       }
@@ -193,7 +218,7 @@
       while (panels.firstChild) panels.removeChild(panels.firstChild);
       (profile.panels || []).forEach(function (panel) {
         if (!panel || !ICONS[panel.type]) {
-          if (panel && panel.type === "featured_designs" && featuredTitle) text(featuredTitle, panel.title || "");
+          if (panel && panel.type === "featured_designs" && featuredTitle) text(featuredTitle, clip(panel.title || "", CAPS.title));
           return;
         }
         var node = panelElement(panel);
@@ -205,9 +230,11 @@
   }
 
   function boot() {
+    var themeUrlAttr = document.documentElement.getAttribute("data-demo-theme");
+    if (!themeUrlAttr) return;
     var root = document.querySelector("[data-layout=profile]");
     if (!root) return;
-    fetch("../docs/themes/demo-artist.json").then(function (response) {
+    fetch(themeUrlAttr).then(function (response) {
       if (!response.ok) throw new Error("theme");
       return response.json();
     }).then(function (theme) {
@@ -220,5 +247,6 @@
 
   global.TT = global.TT || {};
   global.TT.renderProfile = renderProfile;
-  if (document.querySelector("[data-layout=profile]")) boot();
+  global.TT.themeCaps = CAPS;
+  boot();
 })(window);

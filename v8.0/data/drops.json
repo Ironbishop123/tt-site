@@ -1,15 +1,18 @@
 {
-  "zone": "America/Chicago",
   "drops": [
     {
       "id": "placeholder",
-      "artist_id": null,
-      "design_ids": [],
-      "starts_at": "2026-10-24T00:00:00-05:00",
-      "ends_at": "2026-10-24T23:59:59-05:00",
+      "artist_id": "placeholder",
+      "design_ids": ["placeholder"],
+      "starts_at": "2026-12-12T00:00:00-06:00",
+      "ends_at": "2026-12-12T23:59:59-06:00",
+      "last_chance_starts_at": "2026-12-13T00:00:00-06:00",
+      "last_chance_ends_at": "2026-12-13T23:59:59-06:00",
+      "live_price": null,
+      "last_chance_price": null,
+      "vault_price": null,
       "status_override": null,
-      "theme": null,
-      "placeholder": true
+      "theme": null
     }
   ]
 }

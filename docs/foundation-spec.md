@@ -1,4 +1,4 @@
-# Tempered Tees site foundation spec (draft v0.6.3)
+# Tempered Tees site foundation spec (draft v0.7)
 Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_Foundation_Spec_v0.5 (3 HIGH, 11 MED, 8 LOW) and follows Arthur's 11:44–11:45 AM scope, plus Creative v2.2. Changes: `docs/foundation-spec_v0.6_CHANGES.md`. The version history is in the _prev files.
 
 **Ground rules.**
@@ -54,39 +54,48 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
 - **Theme JSON schema:** `docs/themes/tt-theme.schema.json` (JSON Schema 2020-12) is the only copy; it isn't duplicated here. The sample is `docs/themes/demo-artist.json`. Artist theme sheets stay Phase 2 [G1].
   - `--font-display` is allowed only from an enum: `"Space Grotesk"` and `"Inter"` today, plus the 22 curated OFL fonts from Creative's Artist_Fonts.md, all self-hosted (rulings D and I). Gatekeeper still verifies the licences.
   - `--color-focus` and every locked token are rejected.
-- **Window timing (Arthur 11:16, display rule 11:44):**
-  - Each drop runs from **12:00:00 AM to 11:59:59 PM CT** on its day.
-  - All times live in one file, `data/drops.json`. Arthur sets them, Forge commits them, and Gatekeeper verifies each timer.
-  - Pages switch state on the client from the stored instants, so no deploy is needed at midnight.
-  - **Ruling G:** the upcoming, live and ended versions of each drop page are committed ahead of time, each with its absolute times, so crawlers and no-JS visitors see true times.
-- **drops.json record:**
-  - Fields: `{"id","artist_id","design_ids":[],"starts_at","ends_at","status_override":null|"sold_out"|"pulled","theme":"<theme id>|null"}`.
-  - `starts_at` is local 00:00:00 and `ends_at` is local 23:59:59 in America/Chicago. Both are written as ISO 8601 with the explicit UTC offset for that date, e.g. `2026-12-12T00:00:00-06:00` / `2026-12-12T23:59:59-06:00`.
-  - They're never local-time strings without an offset, and never derived from page load.
-- **Exact semantics:**
-  - The sale is open while `starts_at ≤ now ≤ ends_at`, with `ends_at` inclusive to the end of its second.
-  - In UTC instants, `(ends_at + 1 s) − starts_at = 86400 s`: a real 24 h, closing at the next local midnight.
-  - The timer counts down to `ends_at` (23:59:59).
-- **Labels:** generated only from `starts_at` and `ends_at` in America/Chicago, never hand-typed.
-  - Live on the drop day: "Ends tonight 11:59 PM CT".
-  - Elsewhere (absolute form): "Ends Sat, Dec 12, 11:59 PM CT".
-  - Upcoming: "Starts Sat, Dec 12, 12:00 AM CT".
-- **Timer states** (the client re-checks every second; no reload needed):
-  - `status_override` wins: `sold_out` shows "Sold out" and `pulled` shows "Unavailable", with no countdown.
-  - `now < starts_at` → upcoming: start label, no countdown.
-  - `starts_at ≤ now ≤ ends_at` → live: countdown plus the end label.
-  - `now > ends_at` → ended: "Ended", no countdown. The page switches to this the moment the countdown reaches 0.
-  - A missing `ends_at` means no timer at all.
+- **Drop state machine (Arthur ruling, v0.7, 12:06 PM CT):**
+  - States, in order: **UPCOMING → LIVE → LAST CHANCE → VAULT**. SOLD OUT and PULLED come from `status_override`, which always wins.
+  - **LIVE:** one full CT day, 12:00:00 AM–11:59:59 PM CT, at `live_price`.
+  - **LAST CHANCE:** the next full CT day, 12:00:00 AM–11:59:59 PM CT, at `last_chance_price`.
+  - **VAULT:** from then on, at `vault_price`, which equals the regular price. Stoke-back works as in §5 (Vault).
+  - **The price belongs to the state.** The page shows the price of the current state and nothing else.
+  - **One drop per screen.** No page shows two drops' countdowns or prices at once.
+  - All times live in one file, `data/drops.json`. Arthur sets them, Forge commits them, and Gatekeeper verifies them. Pages switch state on the client from the stored instants, so no deploy is needed at midnight.
+  - **Ruling G:** the static versions of each drop page (upcoming, live, last chance, vault) are committed ahead of time, each with its absolute times and its state's price, so crawlers and no-JS visitors see true times and prices.
+- **drops.json record** (schema: `docs/data/drops.schema.json`):
+  - Fields: `{"id","artist_id","design_ids":[],"starts_at","ends_at","last_chance_starts_at","last_chance_ends_at","live_price","last_chance_price","vault_price","status_override":null|"sold_out"|"pulled","theme":"<theme id>|null"}`.
+  - **Prices are required fields**, in USD as a number or `null`. They are `null` until Arthur sets them, after Scott verifies RIPT. Forge never invents a number.
+  - A drop with any `null` price cannot go live: the price gate fails, and the page shows no price or buy button.
+  - Every `*_starts_at` is local 00:00:00 and every `*_ends_at` is local 23:59:59 in America/Chicago, written as ISO 8601 with that date's explicit offset (e.g. `2026-12-12T00:00:00-06:00`). They're never local-time strings without an offset, and never derived from page load.
+  - `last_chance_starts_at` is `ends_at` + 1 s, i.e. the next local midnight.
+- **Exact semantics** (instants compared in UTC; each `ends_at` is inclusive to the end of its second):
+  - `now < starts_at` → UPCOMING.
+  - `starts_at ≤ now ≤ ends_at` → LIVE.
+  - `last_chance_starts_at ≤ now ≤ last_chance_ends_at` → LAST CHANCE.
+  - `now > last_chance_ends_at` → VAULT.
+  - Each day spans exactly 86400 s in UTC: `(ends_at+1s)−starts_at` and `(last_chance_ends_at+1s)−last_chance_starts_at`.
+- **Countdown module:** a single module whose content changes at zero, with no separate banner and no reload. The client re-checks every second.
+  - **UPCOMING:** "Starts Sat, Dec 12, 12:00 AM CT", no countdown, price shown as `live_price`.
+  - **LIVE:** countdown to `ends_at`, "Ends tonight 11:59 PM CT", `live_price`.
+  - At zero, it becomes **LAST CHANCE:** countdown to `last_chance_ends_at`, "Last chance · ends tonight 11:59 PM CT", `last_chance_price`.
+  - At zero, it becomes **VAULT:** no countdown, "In the Vault", `vault_price`, and the stoke-back control.
+  - **`status_override`:** `sold_out` shows "Sold out", no countdown and no buy button; `pulled` shows "Unavailable" in the same way.
+  - Off the drop day, absolute labels are used, e.g. "Ends Sat, Dec 12, 11:59 PM CT".
+  - **All labels and prices are generated from drops.json, never hand-typed.**
 - **DST (ruling B, M7):**
   - Offsets come from the America/Chicago zone rules (`-05:00` CDT, `-06:00` CST) and are never hand-typed.
   - **All duration math is in UTC instants.** Parse the stored offsets, or convert to UTC, before subtracting. Same-zone wall-clock subtraction hides DST.
-  - No drop may start on a DST-change day. The refused dates are **generated from the zone rules** (any date whose 00:00 and next 00:00 differ by ≠ 86400 s in UTC), not from a typed list. Examples: 2026-11-01, 2027-03-14, 2027-11-07.
-- **Timer gate (it can fail):** for every drops.json record:
-  - `(ends_at+1s) − starts_at == 86400` in UTC;
-  - `starts_at` is local 00:00:00 and `ends_at` is local 23:59:59 in America/Chicago;
-  - the start date is not on the generated DST-day list;
-  - every rendered label string equals the label regenerated from `ends_at`/`starts_at`;
-  - a page test with a mocked clock shows the upcoming → live → ended changes at the exact instants.
+  - **Neither the LIVE day nor the LAST CHANCE day may fall on a DST-change day** (v0.7). The refused dates are **generated from the zone rules** (any date whose 00:00 and next 00:00 differ by ≠ 86400 s in UTC), not from a typed list. Examples: 2026-11-01, 2027-03-14, 2027-11-07.
+- **Timer gate (it can fail):** `docs/tools/drops_check.py`, run on every drops.json record together with the schema:
+  - both days span 86400 s in UTC;
+  - every start is local 00:00:00 and every end is local 23:59:59;
+  - `last_chance_starts_at` = `ends_at` + 1 s;
+  - neither day is on the generated DST-day list;
+  - for publish, no price is `null`;
+  - every rendered label equals the label regenerated from drops.json;
+  - a mocked-clock page test shows UPCOMING → LIVE → LAST CHANCE → VAULT at the exact instants, with the right price each time and no reload.
+- **Price gate (new [G20]):** in every state (UPCOMING, LIVE, LAST CHANCE, VAULT), the price shown equals the price Shopify charges at checkout. It is tested with a mocked clock in each state, through to the checkout total before payment. Any mismatch fails the gate.
 
 ## 3a. Artist-customizable slots (off by default, unused at launch)
 - **Where the slots are:** named slots on the **artist profile** page and the **product/selling** page:
@@ -194,9 +203,11 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
   - If `ends_at` is missing or in the past, there is no countdown: the page shows the actual state ("Sold out", "Ended").
   - The client clock is a known risk, so the absolute end time is shown alongside the countdown: "Ends tonight 11:59 PM CT", or "Ends Sat, Dec 12, 11:59 PM CT" off the drop day. It is generated from `ends_at` (§3).
 - **Checkout platform:** ruling 1 (above). Pages stay static and use the Shopify Buy Button / Storefront.
+- **"Last Chance" wording (v0.7):** it is used only in the LAST CHANCE state, and only while it is literally true: the design returns to the Vault at `vault_price` after `last_chance_ends_at`, and no other sale of the design at `last_chance_price` or lower is scheduled. The copy gate [G18] checks this against drops.json.
 - **Copy rule (M8):** before commit, a gate scans all public copy (HTML, drops.json, theme text) case-insensitively for `forever`, `never`, `always`, `guaranteed`, `last chance`, `only \d+ left`, `selling fast`, `limited time` and `restock`.
   - Each hit needs a whitelisted reason, or the gate fails:
     - "never returns" only on a design record with `retired:true` and a date;
+    - "last chance" only in the LAST CHANCE state's generated copy, and only when the "Last Chance" wording rule above holds (v0.7);
     - legal text exempt by path.
   - Product titles that quote shirt wording must match the print file's text exactly (checked against the design record's `print_text`).
 - **CSP (M11):** set per page with a `<meta http-equiv>` tag.
@@ -214,6 +225,10 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
 | 5 | takeover slot + theme JSON (after the first drops) | a theme that fails AA contrast falls back to default (automated test); schema validation rejects unknown tokens |
 
 ## Open questions
+- **v0.7:** `live_price`, `last_chance_price` and `vault_price` are TBD by Arthur after Scott verifies RIPT. Until then they are `null` placeholders.
+- **Backlog (Gatekeeper optional LOWs, v0.6.3):**
+  - the DOMPurify href hook only covers `href`/`xlink:href`, so references outside url() in other attributes (e.g. `filter`/`mask`/`clip-path`/`marker-*`) should also be limited to `url(#id)`;
+  - reject `<!DOCTYPE`/`<!ENTITY` before svgo, not only in the second pass.
 - **Resolved:** artist links have no nofollow/ugc (Arthur, 11:49 AM CT, v0.6.1). 1–7 by Arthur (11:16 AM), A–G by Arthur (11:19 AM), and Creative's naming questions 8a–f via design-direction-v2/Answers_for_Forge.md (11:30 AM):
   - **(a)** names accepted;
   - **(b)** 8 steps, fixed reading sizes plus 3 fluid;
@@ -239,7 +254,7 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
 - [G5] Printful public-mockup terms: **UNVERIFIED**, needs the official terms linked (ruling E, M9).
 
 **Tests (each can fail)**
-- [G6] Timer gate (§3): the UTC 86400 s check, local 00:00:00 and 23:59:59, the generated DST-day refusal (2026-11-01, 2027-03-14, 2027-11-07 refused), label equals regenerated label, and the mocked-clock state changes.
+- [G6] Timer gate (§3, `drops_check.py`): LIVE and LAST CHANCE days each pass the UTC 86400 s check, local 00:00:00 and 23:59:59, the generated DST-day refusal (2026-11-01, 2027-03-14, 2027-11-07 refused), label equals regenerated label, and the mocked-clock state changes.
 - [G7] Artist text escaping (H1): schema rejects `<>` and over-long text; the `onerror` payload renders as text with 0 elements created; 0 `innerHTML`-family uses in site JS.
 - [G8] SVG (H2): DOMPurify SVG profile plus the second-pass reject grep. One test file each for script, `on*`, style/@import, SMIL set/animate href, `javascript:`, `data:`, `use`, `a`, foreignObject and external href, all must be rejected or made safe. SVG is rendered only via `<img>`/CSS.
 - [G9] Real file size and pixel caps per slot (M2); an over-cap file is rejected.
@@ -252,4 +267,5 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
 - [G16] Theme schema: rejects external URLs, locked tokens, `--color-focus`, off-list fonts, `elements` > 1, and `--el-*` > 1; demo-artist.json passes.
 - [G17] Print files: transparent PNG (RGBA), ≥ 4500×5400, corners at alpha 0, no opaque full-canvas background.
 - [G18] Copy rule gate (M8): banned absolute or scarcity words need a whitelisted reason; "never returns" needs `retired:true`; product titles that quote shirt wording match `print_text` exactly.
+- [G20] Price parity (v0.7): the price shown equals the Shopify checkout price in UPCOMING, LIVE, LAST CHANCE and VAULT (mocked clock); a `null` price blocks publishing.
 - [G19] Phase 0: every §2 token name is in Creative v2.2 tt-theme.css; site tokens.css is byte-identical to the version used.
