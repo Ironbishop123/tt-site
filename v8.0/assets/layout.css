@@ -221,16 +221,25 @@ h1 {
   [data-layout="hero"] .hero-copy { padding-top: 8px; }
 }
 /* One scale for short landscape wider than 480px.
-   The board is the unscaled hero. The slot is the visible viewport. */
+   The board is the unscaled hero. The slot is the visible viewport.
+   Floor is 0.41. 0.6 starts the band at y=324, below 272 and 320.
+   0.41 keeps at least 24px of the band in those frames.
+   The link is 24.8px unscaled, so the floor alone cannot make a 40px target. */
 @media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
   [data-layout="hero"] {
     --hero-board: 640px;
     --hero-slot: calc(100vh - 72px);
-    --hero-scale: min(1, var(--hero-slot) / var(--hero-board));
+    --hero-floor: 0.41;
+    --hero-scale: max(var(--hero-floor), min(1, var(--hero-slot) / var(--hero-board)));
     flex: none;
     height: var(--hero-board);
     min-height: var(--hero-board);
     zoom: var(--hero-scale);
+  }
+  [data-layout="hero"] .hero-copy .text-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: calc(40px / var(--hero-scale));
   }
 }
 @supports (height: 100svh) {
