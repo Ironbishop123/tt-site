@@ -178,7 +178,12 @@ h1 {
   text-shadow: 0 0 24px rgb(232 100 44 / 0.28);
 }
 [data-layout="hero"] .hero-copy { flex: 1 1 auto; padding-block: var(--space-7) var(--space-6); }
-[data-layout="hero"] .hero-copy .text-link { display: inline-block; margin-top: var(--space-5); }
+[data-layout="hero"] .hero-copy .text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: var(--space-5);
+}
 [data-slot="stage"]:empty { height: 0; overflow: hidden; }
 [data-layout="hero"] [data-slot="stage"] {
   position: relative;
@@ -236,10 +241,21 @@ h1 {
     min-height: var(--hero-board);
     zoom: var(--hero-scale);
   }
+  /* Zoom would draw 16px body copy at about 7px. Keep the rendered size at 13px. */
+  [data-layout="hero"] h1 {
+    font-size: max(var(--text-step-5), calc(13px / var(--hero-scale)));
+  }
+  [data-layout="hero"] .lead,
+  [data-layout="hero"] .drop-label,
+  [data-layout="hero"] .drop-countdown,
+  [data-layout="hero"] .drop-price {
+    font-size: max(var(--text-step-1), calc(13px / var(--hero-scale)));
+  }
   [data-layout="hero"] .hero-copy .text-link {
     display: inline-flex;
     align-items: center;
     min-height: calc(40px / var(--hero-scale));
+    font-size: max(var(--text-step-0), calc(13px / var(--hero-scale)));
   }
 }
 @supports (height: 100svh) {
