@@ -1,0 +1,49 @@
+/* Tempered Tees theme tokens - design-direction-v2 (Creative, 2026-10-24)
+   One file. Components read var(--...) only. Names follow Forge foundation-spec v0.1 §2:
+   --{group}-{role}[-{variant}], semantic roles, never hue names.
+   ARTIST-OVERRIDABLE tokens are marked [A]. Everything else is locked. */
+@font-face{font-family:"Space Grotesk";src:url(../site/assets/SpaceGrotesk-subset.woff2) format("woff2");font-weight:300 700;font-display:swap}
+@font-face{font-family:"Inter";src:url(../site/assets/Inter-subset.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{
+  color-scheme:dark;
+  /* Color: forged steel ground, warm-white text, ONE heat accent */
+  --color-bg:#0F1114;            /* [A] page ground (quenched steel) */
+  --color-surface:#181B20;       /* [A] one tone step up; panels, product stage */
+  --color-text:#F3EEE6;          /* [A] warm white */
+  --color-text-muted:#A9AFB6;    /* [A] secondary text, still AA on bg+surface */
+  --color-accent:#E8642C;        /* [A] heat: primary action + one detail per screen */
+  --color-accent-contrast:#14110F; /* [A] text on accent */
+  --color-line:#2C3037;          /* [A] dividers (functional only) */
+  --color-focus:#D9B45A;         /* locked: straw-temper focus ring */
+  --color-link:#F3EEE6;          /* [A] links = text colour + underline */
+  /* Type: 2 fonts, fixed steps with one fluid display step (ratio ~1.25, display 1.5x jump) */
+  --font-display:"Space Grotesk",system-ui,sans-serif; /* [A] only site-licensed OFL faces */
+  --font-body:"Inter",system-ui,sans-serif;
+  --text-step--1:0.8125rem;   /* 13 captions, legal */
+  --text-step-0:1rem;         /* 16 body */
+  --text-step-1:1.25rem;      /* 20 lead / price */
+  --text-step-2:1.5625rem;    /* 25 section titles phone */
+  --text-step-3:2rem;         /* 32 section titles desktop */
+  --text-step-4:clamp(2.5rem,1.6rem + 3.6vw,4rem);   /* 40-64 product title */
+  --text-step-5:clamp(3rem,1.4rem + 6.4vw,6.5rem);   /* 48-104 hero / artist name */
+  --text-step-6:clamp(3.5rem,0.8rem + 10.5vw,10rem); /* 56-160 takeover artist name only */
+  --leading-tight:1.0;
+  --leading-body:1.55;
+  --tracking-display:-0.025em;
+  /* Spacing: 8px base, steps double-ish */
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px;
+  --space-6:32px; --space-7:48px; --space-8:72px; --space-9:120px;
+  /* Grid */
+  --grid-cols:4; --gutter:16px; --margin:20px; --measure:62ch; --container:1312px;
+  --radius-1:4px; --radius-2:8px;
+  /* Motion (see Motion.md) */
+  --dur-fast:140ms; --dur:220ms; --dur-slow:480ms;
+  --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.65,0,.35,1);
+  /* Forge-element palette [A] */
+  --el-core:#FFF1C2; --el-hot:#FFB43C; --el-mid:#E8642C; --el-cool:#7A1F0A; --el-smoke:#2C3037;
+  --el-intensity:0.35;  /* [A] 0-1; home default is low */
+  --el-speed:0.6;       /* [A] 0-2; 1 = real-time fire */
+}
+@media (min-width:768px){:root{--grid-cols:8;--gutter:24px;--margin:40px}}
+@media (min-width:1200px){:root{--grid-cols:12;--gutter:32px;--margin:64px}}
+@media (prefers-reduced-motion:reduce){:root{--dur-fast:0ms;--dur:0ms;--dur-slow:0ms;--el-speed:0}}

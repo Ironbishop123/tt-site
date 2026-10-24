@@ -23,8 +23,7 @@
   "profile": {
    "frame": {
     "src": "assets/themes/demo-artist/frame_placeholder.svg",
-    "slice": 24,
-    "max_kb": 50
+    "slice": 24
    },
    "background_texture": {
     "src": "assets/themes/demo-artist/texture_placeholder.png",

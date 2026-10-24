@@ -1,0 +1,5 @@
+<!-- TODO: L2 badge needs a PROV record before public launch. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><title>Tempered Tees mark L2, simplified from C_icon (code-drawn)</title>
+<circle cx="150" cy="150" r="146" fill="#E8642C"/>
+<g transform="translate(150 158) scale(.82) translate(-150 -150)"><path d="M48 112 L78 74 L120 56 Q150 74 180 56 L222 74 L252 112 L220 132 L208 116 L208 236 L92 236 L92 116 L80 132 Z" fill="#0F1114"/>
+<path d="M92 236 L92 204 L112 226 L130 192 L150 224 L170 192 L188 226 L208 204 L208 236 Z" fill="#FFB43C"/></g></svg>

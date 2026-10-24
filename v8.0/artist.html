@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0F1114">
+<title>Artist · Tempered Tees</title>
+<script src="assets/boot.js"></script>
+<link rel="icon" href="assets/logo/L2_badge.svg" type="image/svg+xml">
+<link rel="preload" href="site/assets/SpaceGrotesk-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="site/assets/Inter-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/layout.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<!-- TODO: L2 badge needs a PROV record before public launch. -->
+<header class="wrap nav" data-slot="nav">
+  <a class="brand" href="index.html"><img src="assets/logo/L2_badge.svg" width="32" height="32" alt=""><span>TEMPERED TEES</span></a>
+  <nav id="site-menu" class="nav-links" aria-label="Primary">
+    <ul>
+      <li><a href="index.html">Today's Drop</a></li>
+      <li><a href="vault.html">Vault</a></li>
+      <li><a href="artist.html" aria-current="page">Artists</a></li>
+    </ul>
+  </nav>
+  <a class="cart" href="cart.html">Cart</a>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Menu"><span class="bars"></span></button>
+</header>
+<main id="content" data-layout="profile" tabindex="-1">
+  <!-- Artist SVGs render only via <img src>. An allowlist sanitizer runs at hand-load time. No fire band. -->
+  <template id="panel-stroke">
+    <svg class="scr" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="99" height="99" pathLength="100" rx="1"></rect>
+    </svg>
+  </template>
+  <div class="banner" data-slot="banner"></div>
+  <div class="wrap profile-body">
+    <div class="pf-top">
+      <div class="avatar" data-slot="avatar-frame"></div>
+      <h1 data-field="name"></h1>
+    </div>
+    <p class="pf-sub" data-field="bio"></p>
+    <p class="royalty">Earns a royalty on each paid sale, under our artist agreement.</p>
+    <div class="panels" data-slot="panels"></div>
+    <article class="solo">
+      <div class="solo-stage" data-slot="stage">
+        <p class="placeholder" data-placeholder>Placeholder — catalog design is not loaded.</p>
+      </div>
+      <div class="solo-tx">
+        <h2 class="feat" data-field="featured-title"></h2>
+        <p class="placeholder" data-placeholder>Placeholder — one design is shown here when the catalog has one. No price is shown.</p>
+      </div>
+    </article>
+  </div>
+</main>
+<footer data-slot="legal">
+  <div class="wrap legal">
+    <p class="legal-lines"><span>© 2026 Tempered Tees LLC</span><span>PO Box 114, Sugar Grove, IL 60554</span></p>
+    <nav class="footer-nav" aria-label="Footer"><a href="about.html">About</a></nav>
+  </div>
+</footer>
+<script src="assets/drop-time.js"></script>
+<script src="assets/theme-text.js"></script>
+<script src="assets/frame.js"></script>
+<script src="assets/reveal.js"></script>
+<script src="assets/profile.js"></script>
+</body>
+</html>

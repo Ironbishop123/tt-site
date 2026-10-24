@@ -37,10 +37,6 @@
          "type": "integer",
          "minimum": 0,
          "maximum": 64
-        },
-        "max_kb": {
-         "type": "integer",
-         "maximum": 200
         }
        }
       },
@@ -87,10 +83,6 @@
        "type": "number",
        "minimum": 0,
        "maximum": 0.35
-      },
-      "max_kb": {
-       "type": "integer",
-       "maximum": 300
       }
      }
     },
@@ -110,11 +102,8 @@
       },
       "alt": {
        "type": "string",
-       "maxLength": 120
-      },
-      "max_kb": {
-       "type": "integer",
-       "maximum": 400
+       "maxLength": 120,
+       "pattern": "^[^<>]*$"
       }
      }
     },
@@ -144,9 +133,9 @@
   },
   "link": {
    "type": "string",
-   "format": "uri",
-   "pattern": "^https://[^\\s\"'<>]+$",
-   "maxLength": 200
+   "maxLength": 200,
+   "pattern": "^https://(www\\.)?(instagram\\.com|tiktok\\.com|x\\.com|threads\\.net|bsky\\.app|youtube\\.com|behance\\.net|artstation\\.com|dribbble\\.com|etsy\\.com|ko-fi\\.com|patreon\\.com|linktr\\.ee|example\\.com)(/[^\\s\"'<>@]*)?$",
+   "description": "https only, allowlisted host, no userinfo/port (spec \u00a73a M1). example.com = test themes only."
   },
   "panel": {
    "type": "object",
@@ -168,11 +157,13 @@
     "title": {
      "type": "string",
      "minLength": 1,
-     "maxLength": 40
+     "maxLength": 40,
+     "pattern": "^[^<>]*$"
     },
     "text": {
      "type": "string",
-     "maxLength": 300
+     "maxLength": 300,
+     "pattern": "^[^<>]*$"
     },
     "image": {
      "type": "object",
@@ -188,7 +179,8 @@
       },
       "alt": {
        "type": "string",
-       "maxLength": 120
+       "maxLength": 120,
+       "pattern": "^[^<>]*$"
       },
       "height": {
        "enum": [
@@ -198,10 +190,6 @@
         320
        ],
        "$comment": "fixed width 320 CSS px"
-      },
-      "max_kb": {
-       "type": "integer",
-       "maximum": 200
       }
      }
     },
@@ -219,7 +207,8 @@
       },
       "label": {
        "type": "string",
-       "maxLength": 40
+       "maxLength": 40,
+       "pattern": "^[^<>]*$"
       },
       "kind": {
        "enum": [
@@ -280,11 +269,13 @@
    "properties": {
     "name": {
      "type": "string",
-     "maxLength": 60
+     "maxLength": 60,
+     "pattern": "^[^<>]*$"
     },
     "bio": {
      "type": "string",
-     "maxLength": 600
+     "maxLength": 600,
+     "pattern": "^[^<>]*$"
     },
     "links": {
      "type": "array",
@@ -308,7 +299,7 @@
     "^--el-(intensity|speed)$": {
      "type": "number",
      "minimum": 0,
-     "maximum": 2
+     "maximum": 1
     },
     "^--font-display$": {
      "enum": [
@@ -343,7 +334,7 @@
   },
   "elements": {
    "type": "array",
-   "maxItems": 3,
+   "maxItems": 1,
    "items": {
     "enum": [
      "fire",
@@ -382,11 +373,8 @@
       },
       "alt": {
        "type": "string",
-       "maxLength": 120
-      },
-      "max_kb": {
-       "type": "integer",
-       "maximum": 400
+       "maxLength": 120,
+       "pattern": "^[^<>]*$"
       }
      }
     },
@@ -399,10 +387,6 @@
      "properties": {
       "src": {
        "$ref": "#/$defs/vector_or_png"
-      },
-      "max_kb": {
-       "type": "integer",
-       "maximum": 50
       }
      }
     },
@@ -415,5 +399,6 @@
     }
    }
   }
- }
+ },
+ "$comment": "spec v0.6"
 }
