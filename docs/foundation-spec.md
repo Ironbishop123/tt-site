@@ -1,4 +1,4 @@
-# Tempered Tees site foundation spec (draft v0.7)
+# Tempered Tees site foundation spec (draft v0.7.4)
 Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_Foundation_Spec_v0.5 (3 HIGH, 11 MED, 8 LOW) and follows Arthur's 11:44–11:45 AM scope, plus Creative v2.2. Changes: `docs/foundation-spec_v0.6_CHANGES.md`. The version history is in the _prev files.
 
 **Ground rules.**
@@ -55,7 +55,9 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
   - `--font-display` is allowed only from an enum: `"Space Grotesk"` and `"Inter"` today, plus the 22 curated OFL fonts from Creative's Artist_Fonts.md, all self-hosted (rulings D and I). Gatekeeper still verifies the licences.
   - `--color-focus` and every locked token are rejected.
 - **Drop state machine (Arthur ruling, v0.7, 12:06 PM CT):**
-  - States, in order: **UPCOMING → LIVE → LAST CHANCE → VAULT**. SOLD OUT and PULLED come from `status_override`, which always wins.
+  - **LAST CHANCE is cut for launch (Arthur, 12:26 PM CT, v0.7.4).** Agreement v1.17 treats any sale after the first 24 h as a re-drop (7 days' notice, standard 15% ladder). It sits behind the flag `last_chance` in `docs/data/features.json`, which is **OFF by default**. With the flag off: the launch states are **UPCOMING → LIVE → VAULT**, and VAULT starts at `ends_at` + 1 s; no 'Last chance' label, price or page may render; drops.json may not contain any `last_chance_*` field or a `last_chance` status, and `drops_check.py` rejects them (it reads the flag from data/features.json or `--features <path>`). Turning the flag on needs an Arthur ruling and an agreement that allows it. The LAST CHANCE text below is kept for that future use only.
+  - **Copy names (Arthur, 12:26 PM CT):** the LIVE tier is called **"Today's Drop"** ($26). **"Forge on Fire"** is the re-drop term only; it is never used for a first-24 h drop.
+  - States, in order (with the flag on): **UPCOMING → LIVE → LAST CHANCE → VAULT**. SOLD OUT and PULLED come from `status_override`, which always wins.
   - **LIVE:** one full CT day, 12:00:00 AM–11:59:59 PM CT, at `live_price`.
   - **LAST CHANCE:** the next full CT day, 12:00:00 AM–11:59:59 PM CT, at `last_chance_price`.
   - **VAULT:** from then on, at `vault_price`, which equals the regular price. Stoke-back works as in §5 (Vault).
@@ -64,8 +66,11 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
   - All times live in one file, `data/drops.json`. Arthur sets them, Forge commits them, and Gatekeeper verifies them. Pages switch state on the client from the stored instants, so no deploy is needed at midnight.
   - **Ruling G:** the static versions of each drop page (upcoming, live, last chance, vault) are committed ahead of time, each with its absolute times and its state's price, so crawlers and no-JS visitors see true times and prices.
 - **drops.json record** (schema: `docs/data/drops.schema.json`):
-  - Fields: `{"id","artist_id","design_ids":[],"starts_at","ends_at","last_chance_starts_at","last_chance_ends_at","live_price","last_chance_price","vault_price","status_override":null|"sold_out"|"pulled","theme":"<theme id>|null"}`.
-  - **Prices are required fields**, in USD as a number or `null`. They are `null` until Arthur sets them, after Scott verifies RIPT. Forge never invents a number.
+  - Fields: `{"id","artist_id","design_ids":[],"starts_at","ends_at","live_price","vault_price","status_override":null|"sold_out"|"pulled","theme":"<theme id>|null","size_upcharges"}`. `live_price` and `vault_price` are required. `last_chance_starts_at`, `last_chance_ends_at` and `last_chance_price` are optional and allowed only with the `last_chance` flag on. `size_upcharges` is required.
+  - **Pricing (Arthur, 12:15 PM CT):** sample prices are LIVE (Today's Drop) $26 and VAULT (Stoked Return) $28. LAST CHANCE ($28) is flag-off at launch, so the sample has no `last_chance_price`. Armory is $30 (no drops.json field). There is no founding price and no founding window.
+    - **Royalty** (Arthur, 12:16 PM CT: the agreement wins; source `research/tee/Artist_Agreement_v1.17_DRAFT.md`): §5.1 the basis is the Net Item Price (payment fees and printing costs aren't deducted); §5.2(a) a Founding Artist earns 20% on every item of their first Design sold during its first 24-hour drop; §5.2(b) the standard ladder for all other sales, including re-drops, LAST CHANCE, VAULT and Armory, is 15% on cleared lifetime units 1–50, 17.5% from unit 51 and 20% from unit 151; §5.3 the per-item minimum is the greater of the percentage or $2.00 at 15%, $2.25 at 17.5% and $2.50 at 20%. If the agreement changes, the agreement wins.
+    - **Shipping:** the buyer pays it as a Printful pass-through; it's free on orders of $60 or more.
+    - **Size upcharges**, the same in every state: `size_upcharges` = 2XL +$2, 3XL +$4, 4XL +$6, 5XL +$8, added to the current state's price.
   - A drop with any `null` price cannot go live: the price gate fails, and the page shows no price or buy button.
   - Every `*_starts_at` is local 00:00:00 and every `*_ends_at` is local 23:59:59 in America/Chicago, written as ISO 8601 with that date's explicit offset (e.g. `2026-12-12T00:00:00-06:00`). They're never local-time strings without an offset, and never derived from page load.
   - `last_chance_starts_at` is `ends_at` + 1 s, i.e. the next local midnight.
@@ -95,7 +100,7 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
   - for publish, no price is `null`;
   - every rendered label equals the label regenerated from drops.json;
   - a mocked-clock page test shows UPCOMING → LIVE → LAST CHANCE → VAULT at the exact instants, with the right price each time and no reload.
-- **Price gate (new [G20]):** in every state (UPCOMING, LIVE, LAST CHANCE, VAULT), the price shown equals the price Shopify charges at checkout. It is tested with a mocked clock in each state, through to the checkout total before payment. Any mismatch fails the gate.
+- **Price gate (new [G20]):** the price shown equals the Shopify checkout price in UPCOMING, LIVE and VAULT, plus LAST CHANCE only if the flag is on (mocked clock); a null price blocks publishing.
 
 ## 3a. Artist-customizable slots (off by default, unused at launch)
 - **Where the slots are:** named slots on the **artist profile** page and the **product/selling** page:
@@ -203,7 +208,7 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
   - If `ends_at` is missing or in the past, there is no countdown: the page shows the actual state ("Sold out", "Ended").
   - The client clock is a known risk, so the absolute end time is shown alongside the countdown: "Ends tonight 11:59 PM CT", or "Ends Sat, Dec 12, 11:59 PM CT" off the drop day. It is generated from `ends_at` (§3).
 - **Checkout platform:** ruling 1 (above). Pages stay static and use the Shopify Buy Button / Storefront.
-- **"Last Chance" wording (v0.7):** it is used only in the LAST CHANCE state, and only while it is literally true: the design returns to the Vault at `vault_price` after `last_chance_ends_at`, and no other sale of the design at `last_chance_price` or lower is scheduled. The copy gate [G18] checks this against drops.json.
+- **"Last Chance" wording (v0.7) (v0.7.4: never rendered while the flag is off):** it is used only in the LAST CHANCE state, and only while it is literally true: the design returns to the Vault at `vault_price` after `last_chance_ends_at`, and no other sale of the design at `last_chance_price` or lower is scheduled. The copy gate [G18] checks this against drops.json.
 - **Copy rule (M8):** before commit, a gate scans all public copy (HTML, drops.json, theme text) case-insensitively for `forever`, `never`, `always`, `guaranteed`, `last chance`, `only \d+ left`, `selling fast`, `limited time` and `restock`.
   - Each hit needs a whitelisted reason, or the gate fails:
     - "never returns" only on a design record with `retired:true` and a date;
@@ -225,7 +230,6 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
 | 5 | takeover slot + theme JSON (after the first drops) | a theme that fails AA contrast falls back to default (automated test); schema validation rejects unknown tokens |
 
 ## Open questions
-- **v0.7:** `live_price`, `last_chance_price` and `vault_price` are TBD by Arthur after Scott verifies RIPT. Until then they are `null` placeholders.
 - **Backlog (Gatekeeper optional LOWs, v0.6.3):**
   - the DOMPurify href hook only covers `href`/`xlink:href`, so references outside url() in other attributes (e.g. `filter`/`mask`/`clip-path`/`marker-*`) should also be limited to `url(#id)`;
   - reject `<!DOCTYPE`/`<!ENTITY` before svgo, not only in the second pass.
@@ -267,5 +271,5 @@ Forge, 2026-10-24 11:48 AM CT (v0.6.1 11:49 AM CT). v0.6 fixes Gatekeeper QA_TT_
 - [G16] Theme schema: rejects external URLs, locked tokens, `--color-focus`, off-list fonts, `elements` > 1, and `--el-*` > 1; demo-artist.json passes.
 - [G17] Print files: transparent PNG (RGBA), ≥ 4500×5400, corners at alpha 0, no opaque full-canvas background.
 - [G18] Copy rule gate (M8): banned absolute or scarcity words need a whitelisted reason; "never returns" needs `retired:true`; product titles that quote shirt wording match `print_text` exactly.
-- [G20] Price parity (v0.7): the price shown equals the Shopify checkout price in UPCOMING, LIVE, LAST CHANCE and VAULT (mocked clock); a `null` price blocks publishing.
+- [G20] Price parity (v0.7.4): the price shown equals the Shopify checkout price in UPCOMING, LIVE and VAULT, plus LAST CHANCE only if the flag is on (mocked clock); a null price blocks publishing.
 - [G19] Phase 0: every §2 token name is in Creative v2.2 tt-theme.css; site tokens.css is byte-identical to the version used.

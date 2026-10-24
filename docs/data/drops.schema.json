@@ -15,7 +15,8 @@
   "drop": {
    "type": "object",
    "additionalProperties": false,
-   "required": ["id","artist_id","design_ids","starts_at","ends_at","last_chance_starts_at","last_chance_ends_at","live_price","last_chance_price","vault_price","status_override","theme"],
+   "$comment": "last_chance_* are optional and allowed only when features.json last_chance=true (enforced by drops_check.py, v0.7.4).",
+   "required": ["id","artist_id","design_ids","starts_at","ends_at","live_price","vault_price","status_override","theme","size_upcharges"],
    "properties": {
     "id": {"type": "string", "pattern": "^[a-z0-9-]{1,40}$"},
     "artist_id": {"type": "string", "pattern": "^[a-z0-9-]{1,40}$"},
@@ -28,7 +29,19 @@
     "last_chance_price": {"$ref": "#/$defs/price"},
     "vault_price": {"$ref": "#/$defs/price"},
     "status_override": {"enum": [null, "sold_out", "pulled"]},
-    "theme": {"type": ["string", "null"], "pattern": "^[a-z0-9-]{1,40}$"}
+    "theme": {"type": ["string", "null"], "pattern": "^[a-z0-9-]{1,40}$"},
+    "size_upcharges": {
+     "type": "object",
+     "additionalProperties": false,
+     "$comment": "USD added to the current state's price; same in every state (v0.7.1).",
+     "required": ["2XL", "3XL", "4XL", "5XL"],
+     "properties": {
+      "2XL": {"type": "number", "minimum": 0, "multipleOf": 0.01},
+      "3XL": {"type": "number", "minimum": 0, "multipleOf": 0.01},
+      "4XL": {"type": "number", "minimum": 0, "multipleOf": 0.01},
+      "5XL": {"type": "number", "minimum": 0, "multipleOf": 0.01}
+     }
+    }
    }
   }
  }
