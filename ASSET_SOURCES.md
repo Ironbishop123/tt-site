@@ -2,7 +2,7 @@
 
 Source and licence for every image, icon, and font in this phase. Creative checked the twelve files left out of PR #2 on 2026-10-24 (Provenance_PR2). All twelve are SELF-MADE. None of those twelve binaries are in this PR.
 
-SELF-MADE means code we wrote, or Paul's own camera photo. Licence for self-made code is original work owned by Tempered Tees, not a third-party licence. UNVERIFIED is used only where the source is actually unknown. Nothing in this list is UNVERIFIED.
+SELF-MADE means code we wrote, or Paul's own camera photo. Licence for self-made code is original work owned by Tempered Tees, not a third-party licence. UNVERIFIED is used only where the source is actually unknown. The v8.0, demo, and Creative rows below are not UNVERIFIED. Public files with no source recorded anywhere in this repo are marked UNKNOWN. UNKNOWN is not a guessed licence.
 
 ## Shipped in v8.0 (the deploy folder)
 
@@ -55,4 +55,28 @@ All twelve are SELF-MADE. They are not committed here.
 | `site/panel_default_Links.svg` | `b407baa2a6453fcec662a05af1d41aecb1f2cace8b03628feab3078ad3ab2035` | SELF-MADE (code). Same construction, word Links. | Original work, Tempered Tees. | No |
 | `site/panel_default_Process.svg` | `378804d7eec084f2c35ab05817a72092162d1d0897d76099cca8e98fc4a061f8` | SELF-MADE (code). Same construction, word Process. | Original work, Tempered Tees. | No |
 
-The live splash at the repository root (`index.html`, `assets/splash.css`, `assets/splash.js`, `CNAME`, and the root font and hero files) is unchanged and is not part of the v8.0 deploy.
+The repository root is now the deployed v8 homepage (`index.html`, with `coming-soon.html` and `about.html`). The previous splash lives at `/splash-v7/` and is not the v8.0 staging folder.
+
+## Public root and splash-v7
+
+These files are committed and are served with the public site or the moved splash. No source or licence for them is recorded elsewhere in this repo, so each is UNKNOWN. Coming soon uses the hero tee files already in this table. It adds no new image, font, or audio file.
+
+| File | Source | Licence |
+|---|---|---|
+| `favicon.svg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `favicon_32.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `apple_touch_180.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `icon-192.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `icon-512.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `icon-512-maskable.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `og_share_1200x630.png` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/hero_flat03_1x.avif` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/hero_flat03_1x.webp` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/hero_flat03_1x.jpg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/hero_flat03_2x.avif` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/hero_flat03_2x.webp` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/hero_flat03_2x.jpg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/audio/forge_loop.mp3` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/audio/forge_loop.webm` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+| `splash-v7/assets/logo_icon.svg` | UNKNOWN. No source recorded in this repo. | UNKNOWN |
+

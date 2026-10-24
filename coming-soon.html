@@ -8,13 +8,13 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0F1114">
 <title>Coming soon · Tempered Tees</title>
-<meta name="description" content="The forge is heating up, shop opens soon.">
+<meta name="description" content="The forge is heating up. Shop opens soon. Artists can submit now.">
 <link rel="canonical" href="https://temperedtees.com/coming-soon.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tempered Tees">
 <meta property="og:url" content="https://temperedtees.com/coming-soon.html">
 <meta property="og:title" content="Coming soon · Tempered Tees">
-<meta property="og:description" content="The forge is heating up, shop opens soon.">
+<meta property="og:description" content="The forge is heating up. Shop opens soon. Artists can submit now.">
 <meta property="og:image" content="https://temperedtees.com/og_share_1200x630.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -28,27 +28,32 @@
 <link rel="preload" href="v8.0/site/assets/Inter-subset.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="v8.0/assets/tokens.css">
 <link rel="stylesheet" href="v8.0/assets/layout.css">
+<link rel="stylesheet" href="assets/coming-soon.css">
 </head>
-<body>
+<body class="soon-page">
 <a class="skip" href="#content">Skip to content</a>
 <header class="wrap nav" data-slot="nav">
   <a class="brand" href="index.html"><img src="v8.0/assets/logo/L2_badge.svg" width="32" height="32" alt=""><span>TEMPERED TEES</span></a>
   <nav id="site-menu" class="nav-links" aria-label="Primary">
     <ul>
-      <li><a href="index.html">Today's Drop</a></li>
-      <li><a href="coming-soon.html">Vault</a></li>
-      <li><a href="coming-soon.html">Artists</a></li>
+      <li><a href="index.html">Home</a></li>
     </ul>
   </nav>
-  <a class="cart" href="coming-soon.html">Cart</a>
   <button class="menu" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Menu"><span class="bars"></span></button>
 </header>
-<main id="content" data-layout="prose" tabindex="-1">
-  <div class="wrap">
-    <h1>The forge is heating up, shop opens soon</h1>
-    <p class="lead">Tees designed by independent artists. First drops coming soon.</p>
-    <p><a class="back" href="https://submit.temperedtees.com/">Artists: get your art on a Tempered Tee</a></p>
-    <p><a class="back" href="index.html">Back home</a></p>
+<main id="content" class="soon-stage" data-layout="soon" tabindex="-1">
+  <div class="soon-tee hero-slot" aria-hidden="true">
+    <picture>
+      <source srcset="splash-v7/assets/hero_flat03_1x.avif 1x, splash-v7/assets/hero_flat03_2x.avif 2x" type="image/avif">
+      <source srcset="splash-v7/assets/hero_flat03_1x.webp 1x, splash-v7/assets/hero_flat03_2x.webp 2x" type="image/webp">
+      <img src="splash-v7/assets/hero_flat03_1x.jpg" srcset="splash-v7/assets/hero_flat03_1x.jpg 1x, splash-v7/assets/hero_flat03_2x.jpg 2x" alt="" width="736" height="576" fetchpriority="high">
+    </picture>
+  </div>
+  <div class="wrap soon-copy">
+    <h1>The forge is heating up</h1>
+    <p class="soon-line">Shop opens soon. Artists can submit now.</p>
+    <a class="soon-cta" href="https://submit.temperedtees.com">Submit your art</a>
+    <a class="soon-back" href="index.html">Back home</a>
   </div>
 </main>
 <footer data-slot="legal">
