@@ -2,7 +2,7 @@
    Theme strings use textContent. Theme SVGs and rasters use img or a validated CSS url.
    An allowlist sanitizer runs at hand-load time. This file does not inline artist SVG. */
 (function (global) {
-  var ASSET = /^assets\/themes\/[a-z0-9-]{3,40}\/[a-z0-9_-]{1,40}\.(svg|png|webp)$/;
+  var ASSET = /^assets\/themes\/[a-z0-9-]{3,40}\/[A-Za-z0-9_-]{1,48}\.(svg|png|webp)$/;
   var HEX = /^#[0-9A-Fa-f]{6}$/;
   var HOSTS = {
     "instagram.com": 1, "tiktok.com": 1, "x.com": 1, "threads.net": 1, "bsky.app": 1,
@@ -180,13 +180,10 @@
       var texture = slots.background_texture;
       var textureSrc = texture ? asset(texture.src, ["png", "webp"]) : "";
       if (textureSrc) {
-        var opacity = Number(texture.opacity);
-        if (!(opacity >= 0) || opacity > 0.35) opacity = 0.08;
-        var overlay = document.createElement("div");
+        var overlay = document.createElement("img");
         overlay.className = "texture";
-        overlay.style.backgroundImage = 'url("' + themeUrl(textureSrc) + '")';
-        overlay.style.backgroundSize = "64px 64px";
-        overlay.style.opacity = String(opacity);
+        overlay.setAttribute("src", themeUrl(textureSrc));
+        overlay.setAttribute("alt", "");
         banner.appendChild(overlay);
       }
       var bannerSrc = profile.banner ? asset(profile.banner.src, ["png", "webp"]) : "";
@@ -229,11 +226,36 @@
     if (global.TT && TT.revealPanels) TT.revealPanels(made);
   }
 
+  var SITE_PROFILE = {
+    artist: {
+      name: "Artist name",
+      bio: "Illustrator based in the US. Pencil, ink, one spot of colour."
+    },
+    profile: {
+      banner: {
+        src: "assets/themes/site-profile/banner_default_A_2400x600.webp",
+        alt: "Default artist banner"
+      },
+      avatar_frame: { src: "assets/themes/site-profile/avatar_frame.svg" },
+      panels: [
+        { type: "about", title: "About", text: "Illustrator based in the US. Pencil, ink, one spot of colour." },
+        { type: "links", title: "Links", text: "Portfolio and social links go here when the artist adds them." },
+        { type: "commissions", title: "Commissions", text: "Open for 2 slots a month." },
+        { type: "process_gallery", title: "Process", text: "Pencil sketch, inked, scanned, then coloured flat for DTG." },
+        { type: "featured_designs", title: "Ember Crest" }
+      ]
+    }
+  };
+
   function boot() {
-    var themeUrlAttr = document.documentElement.getAttribute("data-demo-theme");
-    if (!themeUrlAttr) return;
     var root = document.querySelector("[data-layout=profile]");
     if (!root) return;
+    var themeUrlAttr = document.documentElement.getAttribute("data-demo-theme");
+    if (!themeUrlAttr) {
+      renderProfile(root, SITE_PROFILE);
+      document.documentElement.dataset.profile = "site";
+      return;
+    }
     fetch(themeUrlAttr).then(function (response) {
       if (!response.ok) throw new Error("theme");
       return response.json();

@@ -141,12 +141,12 @@
       var drops = data && Array.isArray(data.drops) ? data.drops : [];
       var drop = drops[0];
       if (!drop) {
-        paintDrop({ label: "", countdown: "", priceText: "", price: null, state: "" });
+        paintDrop({ label: "First drop date coming soon", countdown: "", priceText: "", price: null, state: "" });
         return;
       }
       TT.watchDrop(drop, paintDrop);
     }).catch(function () {
-      paintDrop({ label: "", countdown: "", priceText: "", price: null, state: "" });
+      paintDrop({ label: "First drop date coming soon", countdown: "", priceText: "", price: null, state: "" });
     });
   }
 

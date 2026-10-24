@@ -49,9 +49,19 @@ const browser = await chromium.launch({
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 
-async function open(width, file, reduced, url) {
-  const page = await browser.newPage({ viewport: { width, height: width < 768 ? 844 : 900 }, deviceScaleFactor: 1 });
+async function open(width, file, reduced, url, options = {}) {
+  const page = await browser.newPage({ viewport: { width, height: width < 768 ? 844 : 900 }, deviceScaleFactor: options.dpr || 1 });
   if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
+  if (options.countRaf) {
+    await page.addInitScript(() => {
+      window.__ttRafCalls = 0;
+      const orig = window.requestAnimationFrame.bind(window);
+      window.requestAnimationFrame = (cb) => {
+        window.__ttRafCalls += 1;
+        return orig(cb);
+      };
+    });
+  }
   const external = [];
   const bad = [];
   const consoleErrors = [];
@@ -68,6 +78,31 @@ async function open(width, file, reduced, url) {
   page.on("pageerror", (err) => consoleErrors.push(String(err)));
   await page.goto(url || base + file, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.frame === "ready");
+  if (file === "index.html" && !url) {
+    await page.waitForFunction(() => {
+      const fire = document.querySelector("tt-fire");
+      return fire && (fire.dataset.forgeMode === "webgl" || fire.dataset.forgeMode === "canvas2d" || fire.dataset.forgeMode === "still");
+    });
+  }
+  if (file === "artist.html" && !url) {
+    await page.waitForFunction(() => {
+      const banner = document.querySelector(".banner-art");
+      return document.documentElement.dataset.profile === "site"
+        && document.querySelectorAll(".panel").length === 4
+        && banner && banner.complete && banner.naturalWidth > 0;
+    });
+    if (!reduced) {
+      await page.evaluate(async () => {
+        const panels = [...document.querySelectorAll(".panel")];
+        for (const panel of panels) {
+          panel.scrollIntoView({ block: "center" });
+          await new Promise((resolve) => setTimeout(resolve, 90));
+        }
+        window.scrollTo(0, 0);
+      });
+      await page.waitForFunction(() => [...document.querySelectorAll(".panel")].every((panel) => Number(panel.style.getPropertyValue("--r")) >= 0.99));
+    }
+  }
   const demoProfile = Boolean(url && url.includes("/_demo/"));
   if (demoProfile) {
     await page.waitForFunction(() => document.documentElement.dataset.profile === "ready");
@@ -113,10 +148,13 @@ for (const [name, file] of pages) {
       ? await session.page.locator("[data-drop-price]").first().textContent()
       : null;
     row.price = price;
-    if ((name === "home" || name === "product") && label !== "Starts Sat, Dec 12, 12:00 AM CT") {
+    if ((name === "home" || name === "product") && label !== "First drop date coming soon") {
       fail(`${name} ${width} drop label ${JSON.stringify(label)}`);
     }
     const bodyText = await session.page.locator("body").innerText();
+    if (name === "home" && /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b|11:59|Starts |Ends /.test(bodyText)) {
+      fail(`${name} ${width} has date text`);
+    }
     if (label && /tonight|Last chance/i.test(label)) fail(`${name} ${width} claims a live window ${JSON.stringify(label)}`);
     if (/last chance|forge on fire/i.test(bodyText)) fail(`${name} ${width} rendered retired copy`);
     if (price) fail(`${name} ${width} showed a price ${JSON.stringify(price)}`);
@@ -224,19 +262,34 @@ async function tabNames(page, count) {
     document.body.appendChild(probe);
     const stroke = getComputedStyle(rect).stroke;
     probe.remove();
+    const resources = performance.getEntriesByType("resource").map((entry) => entry.name).join("\n");
     return {
       avatar,
       accent,
       stroke,
       bio: document.querySelector("[data-field=bio]").textContent,
+      featured: document.querySelector("[data-field=featured-title]").textContent,
       profile: document.documentElement.dataset.profile || "",
+      panels: document.querySelectorAll(".panel").length,
+      resources,
     };
   });
   report.reveal = { published: fallback };
   if (fallback.avatar !== "rgb(232, 100, 44)" || fallback.stroke !== "rgb(232, 100, 44)" || fallback.accent !== "") {
     fail(`reveal fallback was not red #E8642C ${JSON.stringify(fallback)}`);
   }
-  if (fallback.bio !== "" || fallback.profile) fail(`published artist rendered a demo theme ${JSON.stringify(fallback)}`);
+  if (fallback.profile !== "site" || fallback.panels !== 4 || fallback.featured !== "Ember Crest") {
+    fail(`published artist template ${JSON.stringify(fallback)}`);
+  }
+  if (fallback.bio !== "Illustrator based in the US. Pencil, ink, one spot of colour.") {
+    fail(`published artist bio ${JSON.stringify(fallback.bio)}`);
+  }
+  if (/tee_1800|crumpled_|print\.svg|mockups-internal|flame\.svg/.test(fallback.resources)) {
+    fail(`published artist used an excluded asset ${fallback.resources}`);
+  }
+  if (!fallback.resources.includes("banner_default_A_2400x600.webp")) {
+    fail("published artist is missing banner A");
+  }
   await session.page.close();
 }
 
@@ -398,21 +451,43 @@ for (const width of widths) {
 }
 
 {
-  const session = await open(1440, "index.html", true);
+  const session = await open(1440, "index.html", true, undefined, { countRaf: true });
+  await session.page.waitForTimeout(500);
   report.reducedMotion = await session.page.evaluate(() => {
     const style = getComputedStyle(document.documentElement);
+    const fire = document.querySelector("tt-fire");
+    const img = fire && fire.shadowRoot ? fire.shadowRoot.querySelector("img") : null;
     return {
       dur: style.getPropertyValue("--dur").trim(),
       durFast: style.getPropertyValue("--dur-fast").trim(),
       durSlow: style.getPropertyValue("--dur-slow").trim(),
       speed: style.getPropertyValue("--el-speed").trim(),
+      rafCalls: window.__ttRafCalls || 0,
+      mode: fire ? fire.dataset.forgeMode : "",
+      still: !!(img && img.complete && img.naturalWidth > 0),
     };
   });
   const motion = report.reducedMotion;
   if (motion.dur !== "0ms" || motion.durFast !== "0ms" || motion.durSlow !== "0ms" || motion.speed !== "0") {
     fail(`reduced motion tokens ${JSON.stringify(motion)}`);
   }
+  if (motion.rafCalls !== 0 || motion.mode !== "still" || !motion.still) {
+    fail(`reduced motion fire ${JSON.stringify(motion)}`);
+  }
   if (session.consoleErrors.length) fail(`reduced motion console ${session.consoleErrors.join(" | ")}`);
+  await session.page.close();
+}
+
+{
+  const session = await open(800, "index.html", false, undefined, { dpr: 3 });
+  const dpr = await session.page.evaluate(() => {
+    const fire = document.querySelector("tt-fire");
+    const canvas = fire && fire.shadowRoot ? fire.shadowRoot.querySelector("canvas") : null;
+    const css = fire ? fire.getBoundingClientRect().width : 0;
+    return { width: canvas ? canvas.width : 0, css, mode: fire ? fire.dataset.forgeMode : "" };
+  });
+  report.dpr = dpr;
+  if (!dpr.css || dpr.width > dpr.css * 2 + 1) fail(`DPR canvas ${JSON.stringify(dpr)}`);
   await session.page.close();
 }
 

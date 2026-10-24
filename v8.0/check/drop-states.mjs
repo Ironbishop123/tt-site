@@ -80,19 +80,18 @@ for (const [name, iso, field] of [
   check("null " + name + " shows no price", view.price == null && view.priceText === "", `drops.json ${field}=null shown=${JSON.stringify(view.priceText)}`);
 }
 
-const file = JSON.parse(fs.readFileSync(path.join(root, "v8.0/data/drops.json"), "utf8")).drops[0];
-const onReviewDay = TT.dropView(file, at("2026-10-24T15:00:00-05:00"));
-const onRealClock = TT.dropView(file, new Date());
+const published = JSON.parse(fs.readFileSync(path.join(root, "v8.0/data/drops.json"), "utf8"));
 check(
-  "placeholder is not live today",
-  onReviewDay.state === "upcoming" &&
-    onReviewDay.label === "Starts Sat, Dec 12, 12:00 AM CT" &&
-    !/tonight/i.test(onReviewDay.label) &&
-    onReviewDay.price == null &&
-    onRealClock.state !== "live" &&
-    onRealClock.state !== "last_chance" &&
-    !/tonight/i.test(onRealClock.label),
-  `review=${onReviewDay.state} ${onReviewDay.label} now=${onRealClock.state} ${onRealClock.label}`
+  "published drops.json has no real drop",
+  Array.isArray(published.drops) && published.drops.length === 0,
+  JSON.stringify(published.drops && published.drops.length)
+);
+const sample = JSON.parse(fs.readFileSync(path.join(root, "docs/data/drops.sample.json"), "utf8")).drops[0];
+const sampleView = TT.dropView(sample, at("2026-10-24T15:00:00-05:00"));
+check(
+  "sample file stays test data",
+  sample.live_price === 26 && sample.vault_price === 28 && sampleView.price === 26,
+  `${sampleView.state} ${sampleView.price}`
 );
 
 check("DST 2026-11-01 refused", TT.isDstChangeDay(2026, 11, 1) === true, "");

@@ -1,21 +1,3 @@
 {
-  "drops": [
-    {
-      "id": "placeholder",
-      "artist_id": "placeholder",
-      "design_ids": ["placeholder"],
-      "starts_at": "2026-12-12T00:00:00-06:00",
-      "ends_at": "2026-12-12T23:59:59-06:00",
-      "live_price": null,
-      "vault_price": null,
-      "status_override": null,
-      "theme": null,
-      "size_upcharges": {
-        "2XL": 2,
-        "3XL": 4,
-        "4XL": 6,
-        "5XL": 8
-      }
-    }
-  ]
+  "drops": []
 }

@@ -8,13 +8,18 @@ SELF-MADE means code we wrote, or Paul's own camera photo. Licence for self-made
 
 | File | Source | Licence |
 |---|---|---|
-| `v8.0/assets/logo/L2_badge.svg` | SELF-MADE. Code-drawn from C_icon.svg, non-AI. Source: Creative v2.3.3 Asset_Provenance.md. | Original work, Tempered Tees. |
+| `v8.0/assets/logo/L2_badge.svg` | SELF-MADE. Code-drawn from C_icon.svg, non-AI. Source: research/tee/Asset_Provenance.md. | Original work, Tempered Tees. |
 | `v8.0/assets/icons/about.svg` | Byte-identical to Creative `site/pub/ring.svg`. Hand-written circle. SELF-MADE (code). | Original work, Tempered Tees. |
 | `v8.0/assets/icons/commissions.svg` | Byte-identical to Creative `site/pub/anvil.svg`. Hand-written path. SELF-MADE (code). | Original work, Tempered Tees. |
 | `v8.0/assets/icons/links.svg` | Forge, hand-drawn two-circle link mark for the profile panel. No embedded image and no external reference. | Original work, Tempered Tees. |
 | `v8.0/assets/icons/process.svg` | Forge, hand-drawn three-line mark for the profile panel. No embedded image and no external reference. | Original work, Tempered Tees. |
 | `v8.0/site/assets/SpaceGrotesk-subset.woff2` | Space Grotesk, self-hosted subset. Licence file beside it: `OFL-SpaceGrotesk.txt`. | SIL Open Font License 1.1. |
 | `v8.0/site/assets/Inter-subset.woff2` | Inter, self-hosted subset. Licence file beside it: `OFL-Inter.txt`. | SIL Open Font License 1.1. |
+| `v8.0/assets/themes/site-profile/banner_default_A_2400x600.webp` | SELF-MADE (code). Re-rendered default banner A from the Creative v2.3.6 public bundle (`cd_v236_public.tgz`, sha256 `e583ad9e1babb9eb546b542f6cf347388564832ebe2905efb335d247bd91092a`). File sha256 `5e1482bfeb3de78595c91132a5d5fd1e494b5c8a2dae170ab64a1dceeadd4367`. | Original work, Tempered Tees. |
+| `v8.0/assets/themes/site-profile/banner_default_B_2400x600.webp` | SELF-MADE (code). Re-rendered default banner B from the same v2.3.6 public bundle. File sha256 `d74d9f55c8791640e3e7437e8c5a5bba0e0440a841f79e1915dc664d4b9008c5`. | Original work, Tempered Tees. |
+| `v8.0/assets/themes/site-profile/avatar_frame.svg` | Forge geometric placeholder, the same code-drawn ring already listed under the demo table. Copied here so the published profile can show a frame. Not artist art. | Original work, Tempered Tees. |
+| `v8.0/assets/fire_band_final.webp` | SELF-MADE. Still frame of the procedural forge fire (band preset) from the fire element. File sha256 `1700c7b5aee3938cd30c6a925457d3d4e5fc8eecc9eeee5b6ba7829c52888c30`. | Original work, Tempered Tees. |
+| `v8.0/assets/forge-elements/core.js`, `fire.js`, `fire.css` | SELF-MADE. Procedural `<tt-fire>` from the forge fire element. No third-party code. The home page reads `--el-intensity` .35 and `--el-speed` .6. | Original work, Tempered Tees. |
 
 The panel outline is not a file. It is one site-owned SVG template in the page (`#panel-stroke`), cloned for the reveal. It is not artist SVG.
 

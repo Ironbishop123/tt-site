@@ -13,7 +13,7 @@ import json
 import re
 import subprocess
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -161,7 +161,7 @@ def main() -> int:
         if run.returncode != 0:
             failures.append("svg second pass failed: " + (run.stdout or run.stderr).strip())
 
-    js_blob = "\n".join(strip_js_comments(p.read_text(encoding="utf-8")) for p in (ROOT / "assets").glob("*.js"))
+    js_blob = "\n".join(strip_js_comments(p.read_text(encoding="utf-8")) for p in (ROOT / "assets").rglob("*.js"))
     for token in FORBIDDEN_DOM:
         if token in js_blob:
             failures.append(f"frame script uses {token}")
@@ -191,21 +191,9 @@ def main() -> int:
     else:
         saved = json.loads(drops_path.read_text(encoding="utf-8"))
         drops = saved.get("drops")
-        if not isinstance(drops, list) or len(drops) != 1:
-            failures.append("drops.json must hold one placeholder drop")
+        if not isinstance(drops, list) or len(drops) != 0:
+            failures.append("published drops.json must hold no real drop")
         else:
-            drop = drops[0]
-            start = datetime.fromisoformat(drop["starts_at"])
-            end = datetime.fromisoformat(drop["ends_at"])
-            if (end + timedelta(seconds=1) - start).total_seconds() != 86400:
-                failures.append("placeholder LIVE day is not 86400 s in UTC")
-            today = datetime.now(CT).date()
-            if start.astimezone(CT).date() == today:
-                failures.append("placeholder drop falls on today and can claim Ends tonight")
-            if any(drop.get(key) is not None for key in ("live_price", "vault_price")):
-                failures.append("placeholder prices must stay null until a real drop is published")
-            if any(key.startswith("last_chance") for key in drop):
-                failures.append("placeholder drop has a last-chance field while the flag is off")
             features = json.loads((REPO / "docs" / "data" / "features.json").read_text(encoding="utf-8"))
             if features.get("last_chance") is not False:
                 failures.append("features.json last_chance must be off")
@@ -213,18 +201,26 @@ def main() -> int:
             flag = checker.load_features(str(REPO / "docs" / "data" / "features.json"))
             if flag.get("last_chance"):
                 failures.append("drops_check loaded last_chance as on")
-            errors = checker.check(drop, publish=False, features=flag)
+            sample_path = REPO / "docs" / "data" / "drops.sample.json"
+            sample = json.loads(sample_path.read_text(encoding="utf-8"))["drops"][0]
+            errors = checker.check(sample, publish=True, features=flag)
             if errors:
-                failures.append("drops_check.py: " + "; ".join(errors))
-            if not checker.check(drop, publish=True, features=flag):
-                failures.append("drops_check.py --publish did not block null prices")
-            banned = dict(drop)
+                failures.append("drops.sample.json --publish: " + "; ".join(errors))
+            banned = dict(sample)
             banned["status_override"] = "last_chance"
             if not checker.check(banned, publish=False, features=flag):
                 failures.append("drops_check did not reject status_override last_chance")
-            cli = subprocess.run([sys.executable, str(REPO / "docs" / "tools" / "drops_check.py"), str(drops_path)], capture_output=True, text=True)
+            cli = subprocess.run(
+                [sys.executable, str(REPO / "docs" / "tools" / "drops_check.py"), str(sample_path), "--publish"],
+                capture_output=True,
+                text=True,
+            )
             if cli.returncode != 0:
-                failures.append("drops_check.py CLI failed: " + (cli.stdout or cli.stderr).strip())
+                failures.append("drops_check.py sample --publish failed: " + (cli.stdout or cli.stderr).strip())
+        if "First drop date coming soon" not in (ROOT / "index.html").read_text(encoding="utf-8"):
+            failures.append("home page is missing the coming-soon line")
+        if "Dec 12" in (ROOT / "index.html").read_text(encoding="utf-8"):
+            failures.append("home page still types a drop date")
 
     colors = token_pairs()
     pairs = [
