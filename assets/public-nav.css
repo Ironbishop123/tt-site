@@ -49,8 +49,8 @@
 
 @media (max-width: 767px) {
   .public-page .brand .wordmark {
-    font-size: 11px;
-    letter-spacing: 0.04em;
+    font-size: 13px;
+    letter-spacing: 0.08em;
   }
   .public-page .nav-pills a {
     padding: 0 10px;
@@ -68,8 +68,9 @@
   .public-page .nav-pills ul { gap: 4px; }
 }
 
-@media (max-width: 379px) {
-  .public-page .brand .wordmark { display: none; }
+/* 13px plus the three pills overflows at 336px and below. Hide the wordmark there instead of shrinking it. Coming soon has no pills, so the wordmark stays. */
+@media (max-width: 336px) {
+  .public-page:not(.soon-page) .brand .wordmark { display: none; }
 }
 
 @media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {

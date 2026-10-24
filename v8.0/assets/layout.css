@@ -72,7 +72,7 @@ h1 {
 .drop-countdown:empty, .drop-price:empty { display: none; }
 .text-link { font-weight: 600; }
 
-/* Header H2: logo left, links and Cart right. Phone: logo, Cart, menu. */
+/* Header H2: logo left, links and Cart right. Phone: logo, Cart, links. */
 .nav {
   display: flex;
   flex-wrap: wrap;
@@ -120,45 +120,12 @@ h1 {
   text-decoration: none;
   white-space: nowrap;
 }
-.menu {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-}
-.menu .bars,
-.menu .bars::before,
-.menu .bars::after {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: currentColor;
-  position: relative;
-}
-.menu .bars::before,
-.menu .bars::after {
-  content: "";
-  position: absolute;
-  left: 0;
-}
-.menu .bars::before { top: -7px; }
-.menu .bars::after { top: 7px; }
-
 @media (max-width: 767px) {
   .nav { column-gap: var(--space-3); }
   .brand span { font-size: 13px; letter-spacing: 0.08em; }
   .cart { order: 2; padding-inline: var(--space-3); }
-  .menu { order: 3; }
   .nav-links { flex-basis: 100%; order: 4; }
   .nav-links ul { flex-direction: column; align-items: stretch; gap: 0; padding-bottom: var(--space-3); }
-  html.js .menu { display: inline-flex; }
-  html.js .nav-links { display: none; }
-  html.js .nav-links.is-open { display: block; }
 }
 
 /* Layout slots */
