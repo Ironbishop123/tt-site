@@ -9,16 +9,17 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(ellipse 42% 48% at 50% 46%, rgb(232 100 44 / 0.16), transparent 70%),
-    linear-gradient(180deg, #0b0c0e 0%, #121418 55%, #17130f 100%);
+    radial-gradient(ellipse 55% 48% at 50% 46%, rgb(255 120 36 / 0.42), transparent 68%),
+    radial-gradient(ellipse 28% 24% at 50% 50%, rgb(255 176 64 / 0.28), transparent 70%),
+    linear-gradient(180deg, #0b0c0e 0%, #14110e 55%, #1a120e 100%);
 }
 
 .soon-tee {
   position: absolute;
   z-index: 0;
   left: 50%;
-  top: 48%;
-  width: min(86vw, 820px);
+  top: 50%;
+  width: min(86vw, 720px, calc((100svh - 132px) * 736 / 576));
   aspect-ratio: 736 / 576;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -27,12 +28,28 @@
 .soon-tee::before {
   content: "";
   position: absolute;
-  inset: -15%;
+  inset: -32%;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 50% 50% at 50% 52%,
-    rgb(232 100 44 / 0.55) 0%, rgb(184 115 51 / 0.30) 45%,
-    rgb(58 22 6 / 0.18) 70%, rgb(15 17 20 / 0) 100%);
+  background: radial-gradient(ellipse 52% 48% at 50% 50%,
+    rgb(255 148 48 / 0.95) 0%,
+    rgb(232 100 44 / 0.72) 32%,
+    rgb(184 72 24 / 0.4) 55%,
+    rgb(80 22 6 / 0.16) 74%,
+    rgb(15 17 20 / 0) 100%);
+}
+
+.soon-tee::after {
+  content: "";
+  position: absolute;
+  inset: -6%;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse 46% 42% at 50% 46%,
+    rgb(255 168 64 / 0.42) 0%,
+    rgb(232 100 44 / 0.18) 48%,
+    rgb(232 100 44 / 0) 72%);
+  mix-blend-mode: screen;
 }
 
 .soon-tee picture,
@@ -43,7 +60,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: saturate(1.05);
+  filter: saturate(1.12) brightness(1.28) contrast(1.06);
 }
 
 /* Plate sits only behind the words, so the tee and ember glow stay visible around it. */
@@ -57,8 +74,8 @@
   align-items: center;
   text-align: center;
   gap: var(--space-4);
-  width: min(100%, 36rem);
-  padding: var(--space-5) var(--space-5);
+  width: min(100%, 22rem);
+  padding: 10px 16px;
 }
 
 .soon-copy::before {
@@ -67,8 +84,8 @@
   z-index: -1;
   inset: 0;
   border-radius: 18px;
-  background: rgb(15 17 20 / 0.92);
-  box-shadow: 0 0 48px 24px rgb(15 17 20 / 0.92);
+  background: rgb(15 17 20 / 0.78);
+  box-shadow: 0 0 16px 4px rgb(15 17 20 / 0.45);
 }
 
 .soon-copy h1 {
@@ -114,34 +131,25 @@
   .soon-cta:hover { background: #f0723a; }
 }
 
-/* One nav item. Keep Home in the bar on a phone. An empty menu would leave a hole. */
 @media (max-width: 767px) {
-  html.js .soon-page .menu { display: none; }
-  html.js .soon-page .nav-links {
-    display: block;
-    flex-basis: auto;
-    order: 0;
-  }
-  html.js .soon-page .nav-links ul {
-    flex-direction: row;
-    padding-bottom: 0;
-  }
-  .soon-tee { width: min(128vw, 560px); top: 44%; }
+  .soon-copy h1 { font-size: 1.75rem; }
   .soon-tee::before {
-    background: radial-gradient(ellipse 50% 50% at 50% 52%,
-      rgb(232 100 44 / 0.65) 0%, rgb(184 115 51 / 0.36) 45%,
-      rgb(58 22 6 / 0.22) 70%, rgb(15 17 20 / 0) 100%);
+    background: radial-gradient(ellipse 54% 50% at 50% 48%,
+      rgb(255 156 52 / 1) 0%,
+      rgb(232 90 32 / 0.78) 30%,
+      rgb(184 64 18 / 0.42) 54%,
+      rgb(15 17 20 / 0) 76%);
   }
 }
 
 @media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
   .soon-page .nav { min-height: 44px; }
   .soon-page .legal { padding-block: 0; }
-  .soon-page .footer-nav a { min-height: 36px; }
-  .soon-copy { gap: 6px; padding: var(--space-3) var(--space-4); }
-  .soon-copy h1 { font-size: 26px; }
-  .soon-line { font-size: 16px; line-height: 1.3; }
+  .soon-page .footer-nav a { min-height: 44px; }
+  .soon-copy { gap: 4px; padding: 6px 12px; }
+  .soon-copy h1 { font-size: 22px; max-width: none; }
+  .soon-line { font-size: 16px; line-height: 1.25; }
   .soon-cta { min-height: 44px; margin-top: 0; font-size: 16px; }
-  .soon-back { min-height: 36px; }
-  .soon-tee { width: min(62vw, 420px); top: 52%; }
+  .soon-back { min-height: 44px; }
+  .soon-tee { top: 50%; }
 }
