@@ -6,15 +6,14 @@ html{background:var(--ink3)}body{color:var(--text);font-family:Inter,system-ui,s
 a{color:var(--link)}::selection{background:rgba(217,180,90,.35);color:#fff}.field{caret-color:var(--straw)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 canvas.embers{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.fire{position:absolute;left:0;right:0;bottom:0;height:max(190px,26vw)!important;background:url(fire_band_final.webp) center bottom/cover no-repeat;pointer-events:none;transform-origin:50% 100%}
+tt-fire.fire{display:block;position:absolute;left:0;right:0;bottom:0;pointer-events:none}
+.fire{height:max(190px,26vw)!important}
 /* headline heat: dark metal -> orange glow -> settled warm white (once) */
 .wd{white-space:nowrap}.ch{display:inline-block}
 .anim .ch{animation:heat 1.6s cubic-bezier(.3,.6,.3,1) both}
 @keyframes heat{0%{color:#2E3136;text-shadow:none}45%{color:#FFB43C;text-shadow:0 0 18px rgba(232,100,44,.9),0 0 42px rgba(232,100,44,.5)}100%{color:var(--final,#F3EEE6);text-shadow:0 0 24px rgba(232,100,44,.28)}}
 .rm .ch{color:var(--final,#F3EEE6);text-shadow:0 0 24px rgba(232,100,44,.28)}
-/* fire flicker + CTA glow pulse (subtle) */
-.anim .fire{animation:flick 3.4s ease-in-out infinite alternate}
-@keyframes flick{0%{opacity:.92;transform:scaleY(.985)}35%{opacity:1;transform:scaleY(1.01)}70%{opacity:.95;transform:scaleY(1)}100%{opacity:1;transform:scaleY(1.02)}}
+/* CTA glow pulse (subtle). Flame flicker is the forge fire shader, not a scale. */
 .btn{position:relative;height:52px;border:0;border-radius:12px;background:var(--heat);color:var(--btn-text);font:700 18px "Space Grotesk";padding:0 24px;white-space:nowrap;cursor:pointer;transition:transform 160ms var(--ease-out),background-color 150ms ease,color 150ms ease,box-shadow 150ms ease}
 .btn::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 18px rgba(232,100,44,.4);opacity:0;pointer-events:none}
 .btn:active:not(.done){transform:scale(.97)}
@@ -62,7 +61,7 @@ form{margin-top:48px;max-width:560px}
 .row{display:flex;gap:10px}.row .field{flex:1}
 .artists{display:inline-block;padding:11px 0 9px;line-height:1.35;min-height:44px;margin-top:26px;color:var(--text);font:600 18px "Space Grotesk";text-decoration:none;border-bottom:1.5px solid var(--straw)}
 .artists span{color:var(--straw)}
-.fire{height:max(220px,min(30vw,34svh))!important;-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent 100%);mask-image:linear-gradient(180deg,#000 82%,transparent 100%);background-image:url(fire_band_final.webp)!important}
+.fire{height:max(220px,min(30vw,34svh))!important;-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent 100%);mask-image:linear-gradient(180deg,#000 82%,transparent 100%)}
 @media (max-width:1100px){h1{font-size:96px}}
 @media (max-width:900px){header{padding:20px 32px}main{padding:4vh 32px 260px}h1{font-size:84px}.shirt{top:64px;left:calc(50% - min(310px,41vw));right:auto;width:min(620px,82vw);-webkit-mask-image:linear-gradient(180deg,#000 45%,rgba(0,0,0,.55) 62%,transparent 80%);mask-image:linear-gradient(180deg,#000 45%,rgba(0,0,0,.55) 62%,transparent 80%)}h1{margin-top:250px!important}.fire{height:240px}}
 @media (max-width:600px){header{padding:16px 20px}header img{width:44px;height:44px}
