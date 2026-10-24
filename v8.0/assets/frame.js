@@ -117,10 +117,24 @@
     });
   }
 
+  function loadFeatures() {
+    TT.features = { last_chance: false };
+    return fetch("../docs/data/features.json").then(function (response) {
+      if (!response.ok) throw new Error("features");
+      return response.json();
+    }).then(function (data) {
+      TT.features = { last_chance: !!(data && data.last_chance === true) };
+    }).catch(function () {
+      TT.features = { last_chance: false };
+    });
+  }
+
   function showDrop() {
     var nodes = document.querySelectorAll("[data-drop-label], [data-drop-price], [data-drop-countdown]");
     if (!nodes.length || !window.TT || !TT.watchDrop) return Promise.resolve();
-    return fetch(siteUrl("data/drops.json")).then(function (response) {
+    return loadFeatures().then(function () {
+      return fetch(siteUrl("data/drops.json"));
+    }).then(function (response) {
       if (!response.ok) throw new Error("drops");
       return response.json();
     }).then(function (data) {

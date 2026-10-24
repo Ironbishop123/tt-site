@@ -15,6 +15,7 @@ const pages = [
   ["vault", "vault.html"],
   ["artist", "artist.html"],
   ["about", "about.html"],
+  ["cart", "cart.html"],
 ];
 const widths = [1440, 1024, 390];
 const base = process.env.BASE || "http://127.0.0.1:8765/v8.0/";
@@ -115,7 +116,9 @@ for (const [name, file] of pages) {
     if ((name === "home" || name === "product") && label !== "Starts Sat, Dec 12, 12:00 AM CT") {
       fail(`${name} ${width} drop label ${JSON.stringify(label)}`);
     }
+    const bodyText = await session.page.locator("body").innerText();
     if (label && /tonight|Last chance/i.test(label)) fail(`${name} ${width} claims a live window ${JSON.stringify(label)}`);
+    if (/last chance|forge on fire/i.test(bodyText)) fail(`${name} ${width} rendered retired copy`);
     if (price) fail(`${name} ${width} showed a price ${JSON.stringify(price)}`);
     await session.page.close();
   }

@@ -8,7 +8,7 @@ SELF-MADE means code we wrote, or Paul's own camera photo. Licence for self-made
 
 | File | Source | Licence |
 |---|---|---|
-| `v8.0/assets/logo/L2_badge.svg` | Creative, code-drawn and simplified from C_icon. The file still carries the TODO that the L2 badge needs a PROV record before public launch. | Original work, Tempered Tees. PROV record not yet filed. |
+| `v8.0/assets/logo/L2_badge.svg` | SELF-MADE. Code-drawn from C_icon.svg, non-AI. Source: Creative v2.3.3 Asset_Provenance.md. | Original work, Tempered Tees. |
 | `v8.0/assets/icons/about.svg` | Byte-identical to Creative `site/pub/ring.svg`. Hand-written circle. SELF-MADE (code). | Original work, Tempered Tees. |
 | `v8.0/assets/icons/commissions.svg` | Byte-identical to Creative `site/pub/anvil.svg`. Hand-written path. SELF-MADE (code). | Original work, Tempered Tees. |
 | `v8.0/assets/icons/links.svg` | Forge, hand-drawn two-circle link mark for the profile panel. No embedded image and no external reference. | Original work, Tempered Tees. |

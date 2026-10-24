@@ -57,6 +57,12 @@ for (const [name, body] of Object.entries(cases)) {
   if (after.status !== 0) failures.push(name + " sanitized output rejected: " + after.stdout + " :: " + cleaned);
 }
 
+const externalSvg = path.join(root, "docs/tools/test_external_url.svg");
+const externalOut = path.join(tmp, "external-url.svg");
+const externalRun = run("npm", ["run", "sanitize-svg", "--", externalSvg, externalOut]);
+if (externalRun.status === 0) failures.push("url(https) test SVG was not rejected\n" + externalRun.stdout + externalRun.stderr);
+else console.log("external url(https) sanitize exit", externalRun.status);
+
 if (failures.length) {
   console.error("SVG SANITIZE: FAIL");
   for (const item of failures) console.error(" -", item);

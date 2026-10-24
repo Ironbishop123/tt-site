@@ -126,8 +126,10 @@ def main() -> int:
             failures.append(f"{name} layout is not {LAYOUTS[name]}")
         if "default-src 'self'" not in text or "shopify" in text.lower():
             failures.append(f"{name} CSP is not all-self")
-        if "Ends tonight" in text or "11:59" in text or "Last chance" in text:
-            failures.append(f"{name} types a drop label")
+        if "Ends tonight" in text or "11:59" in text or "Last chance" in text or "Forge on Fire" in text:
+            failures.append(f"{name} types a drop label or a re-drop name")
+        if '<meta name="robots" content="noindex,nofollow">' not in text:
+            failures.append(f"{name} is missing noindex,nofollow until launch")
         for banned in PUBLISHED_BAN:
             if banned in text:
                 failures.append(f"{name} is a published page and contains {banned}")
@@ -167,8 +169,12 @@ def main() -> int:
         failures.append("theme text renderer does not use textContent")
     if H2_NOTE not in (ROOT / "assets" / "theme-text.js").read_text(encoding="utf-8"):
         failures.append("theme text renderer is missing the SVG hand-load note")
-    if "PROV record" not in (ROOT / "assets" / "logo" / "L2_badge.svg").read_text(encoding="utf-8"):
-        failures.append("L2 badge is missing the PROV TODO")
+    badge = (ROOT / "assets" / "logo" / "L2_badge.svg").read_text(encoding="utf-8")
+    if re.search(r"todo", badge, re.I):
+        failures.append("L2 badge still has a TODO")
+    sources = (REPO / "ASSET_SOURCES.md").read_text(encoding="utf-8")
+    if "C_icon.svg" not in sources or "non-AI" not in sources or "Asset_Provenance.md" not in sources:
+        failures.append("ASSET_SOURCES.md is missing the L2 source")
 
     for day, refused in (
         (date(2026, 11, 1), True),
@@ -191,23 +197,31 @@ def main() -> int:
             drop = drops[0]
             start = datetime.fromisoformat(drop["starts_at"])
             end = datetime.fromisoformat(drop["ends_at"])
-            lc_start = datetime.fromisoformat(drop["last_chance_starts_at"])
-            lc_end = datetime.fromisoformat(drop["last_chance_ends_at"])
             if (end + timedelta(seconds=1) - start).total_seconds() != 86400:
                 failures.append("placeholder LIVE day is not 86400 s in UTC")
-            if (lc_end + timedelta(seconds=1) - lc_start).total_seconds() != 86400:
-                failures.append("placeholder LAST CHANCE day is not 86400 s in UTC")
             today = datetime.now(CT).date()
-            if start.astimezone(CT).date() == today or lc_start.astimezone(CT).date() == today:
+            if start.astimezone(CT).date() == today:
                 failures.append("placeholder drop falls on today and can claim Ends tonight")
-            if any(drop[key] is not None for key in ("live_price", "last_chance_price", "vault_price")):
-                failures.append("placeholder prices must stay null until Arthur sets them")
+            if any(drop.get(key) is not None for key in ("live_price", "vault_price")):
+                failures.append("placeholder prices must stay null until a real drop is published")
+            if any(key.startswith("last_chance") for key in drop):
+                failures.append("placeholder drop has a last-chance field while the flag is off")
+            features = json.loads((REPO / "docs" / "data" / "features.json").read_text(encoding="utf-8"))
+            if features.get("last_chance") is not False:
+                failures.append("features.json last_chance must be off")
             checker = load_drops_check()
-            errors = checker.check(drop, publish=False)
+            flag = checker.load_features(str(REPO / "docs" / "data" / "features.json"))
+            if flag.get("last_chance"):
+                failures.append("drops_check loaded last_chance as on")
+            errors = checker.check(drop, publish=False, features=flag)
             if errors:
                 failures.append("drops_check.py: " + "; ".join(errors))
-            if not checker.check(drop, publish=True):
+            if not checker.check(drop, publish=True, features=flag):
                 failures.append("drops_check.py --publish did not block null prices")
+            banned = dict(drop)
+            banned["status_override"] = "last_chance"
+            if not checker.check(banned, publish=False, features=flag):
+                failures.append("drops_check did not reject status_override last_chance")
             cli = subprocess.run([sys.executable, str(REPO / "docs" / "tools" / "drops_check.py"), str(drops_path)], capture_output=True, text=True)
             if cli.returncode != 0:
                 failures.append("drops_check.py CLI failed: " + (cli.stdout or cli.stderr).strip())
@@ -265,6 +279,7 @@ def main() -> int:
     for line in contrast_lines:
         print(" ", line)
     print("signoff: NOT RECORDED")
+    print('GO_LIVE checklist: remove <meta name="robots" content="noindex,nofollow"> from every v8.0 page at launch.')
     if failures:
         print("GO-LIVE STATUS: FAIL")
         for item in failures:

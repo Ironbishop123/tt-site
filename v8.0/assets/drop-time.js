@@ -170,23 +170,31 @@
     return true;
   }
 
+  function lastChanceOn() {
+    return !!(global.TT && global.TT.features && global.TT.features.last_chance === true);
+  }
+
   function dropView(drop, now) {
     now = now || new Date();
     if (!drop) return emptyView();
+    var lc = lastChanceOn();
     if (drop.status_override === "sold_out") {
       return { state: "sold_out", label: "Sold out", price: null, priceText: "", countdown: "", countdownTo: null };
     }
     if (drop.status_override === "pulled") {
       return { state: "pulled", label: "Unavailable", price: null, priceText: "", countdown: "", countdownTo: null };
     }
-    if (drop.status_override != null) return emptyView();
+    if ((drop.status_override === "last_chance" || drop.status === "last_chance") && !lc) return emptyView();
+    if (drop.status_override != null && drop.status_override !== "last_chance") return emptyView();
     var start = parseIso(drop.starts_at);
     var end = parseIso(drop.ends_at);
-    var lcStart = parseIso(drop.last_chance_starts_at);
-    var lcEnd = parseIso(drop.last_chance_ends_at);
-    if (!start || !end || !lcStart || !lcEnd) return emptyView();
-    if (!localDayOk(start, end) || !localDayOk(lcStart, lcEnd)) return emptyView();
-    if (end.getTime() + 1000 !== lcStart.getTime()) return emptyView();
+    if (!start || !end || !localDayOk(start, end)) return emptyView();
+    var lcStart = lc ? parseIso(drop.last_chance_starts_at) : null;
+    var lcEnd = lc ? parseIso(drop.last_chance_ends_at) : null;
+    if (lc) {
+      if (!lcStart || !lcEnd || !localDayOk(lcStart, lcEnd)) return emptyView();
+      if (end.getTime() + 1000 !== lcStart.getTime()) return emptyView();
+    }
     var nowMs = now.getTime();
     var state;
     var label;
@@ -201,7 +209,7 @@
       label = endPhrase("Ends", end, now);
       price = priceOf(drop.live_price);
       countdownTo = end.getTime() + 1000;
-    } else if (nowMs < lcEnd.getTime() + 1000) {
+    } else if (lc && nowMs < lcEnd.getTime() + 1000) {
       state = "last_chance";
       label = endPhrase("Last chance · ends", lcEnd, now);
       price = priceOf(drop.last_chance_price);
@@ -211,6 +219,7 @@
       label = "In the Vault";
       price = priceOf(drop.vault_price);
     }
+    if (!lc && /last chance/i.test(label)) return emptyView();
     return {
       state: state,
       label: label,
@@ -236,6 +245,7 @@
   }
 
   global.TT = global.TT || {};
+  global.TT.features = { last_chance: false };
   global.TT.dropView = dropView;
   global.TT.watchDrop = watchDrop;
   global.TT.dropEndLabel = dropEndLabel;

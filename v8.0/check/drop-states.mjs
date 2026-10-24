@@ -58,9 +58,9 @@ expectState("upcoming", "2026-12-11T23:59:59-06:00", "upcoming", "Starts Sat, De
 expectState("live", "2026-12-12T15:00:00-06:00", "live", "Ends tonight 11:59 PM CT", 48);
 expectState("live-start", "2026-12-12T00:00:00-06:00", "live", "Ends tonight 11:59 PM CT", 48);
 expectState("live-end", "2026-12-12T23:59:59-06:00", "live", "Ends tonight 11:59 PM CT", 48);
-expectState("last-chance", "2026-12-13T12:00:00-06:00", "last_chance", "Last chance · ends tonight 11:59 PM CT", 36);
-expectState("last-chance-start", "2026-12-13T00:00:00-06:00", "last_chance", "Last chance · ends tonight 11:59 PM CT", 36);
-expectState("last-chance-end", "2026-12-13T23:59:59-06:00", "last_chance", "Last chance · ends tonight 11:59 PM CT", 36);
+expectState("after-live", "2026-12-13T00:00:00-06:00", "vault", "In the Vault", 42);
+expectState("former-last-chance", "2026-12-13T12:00:00-06:00", "vault", "In the Vault", 42);
+expectState("former-last-chance-end", "2026-12-13T23:59:59-06:00", "vault", "In the Vault", 42);
 expectState("vault", "2026-12-14T00:00:00-06:00", "vault", "In the Vault", 42);
 expectState("sold-out", "2026-12-12T15:00:00-06:00", "sold_out", "Sold out", null);
 expectState("pulled", "2026-12-12T15:00:00-06:00", "pulled", "Unavailable", null);
@@ -69,11 +69,11 @@ const override = Object.assign({}, priced, { status_override: "sold_out" });
 const overridden = TT.dropView(override, at("2026-12-12T15:00:00-06:00"));
 check("status_override wins over the clock", overridden.state === "sold_out" && overridden.label === "Sold out" && overridden.countdown === "", overridden.label);
 
-const nullDrop = Object.assign({}, priced, { live_price: null, last_chance_price: null, vault_price: null });
+const nullDrop = Object.assign({}, priced, { live_price: null, vault_price: null });
 for (const [name, iso, field] of [
   ["upcoming", "2026-12-11T12:00:00-06:00", "live_price"],
   ["live", "2026-12-12T12:00:00-06:00", "live_price"],
-  ["last-chance", "2026-12-13T12:00:00-06:00", "last_chance_price"],
+  ["after-live", "2026-12-13T12:00:00-06:00", "vault_price"],
   ["vault", "2026-12-14T12:00:00-06:00", "vault_price"],
 ]) {
   const view = TT.dropView(nullDrop, at(iso));
@@ -114,9 +114,29 @@ await new Promise((resolve) => setTimeout(resolve, 50));
 stop();
 check(
   "morphs at zero without reload",
-  seen.includes("live|48") && seen.includes("last_chance|36"),
+  seen.includes("live|48") && seen.includes("vault|42") && !seen.some((item) => item.startsWith("last_chance")),
   seen.join(" -> ")
 );
+
+const offLabels = [
+  "2026-12-11T23:59:59-06:00",
+  "2026-12-12T15:00:00-06:00",
+  "2026-12-13T00:00:00-06:00",
+  "2026-12-13T12:00:00-06:00",
+  "2026-12-14T00:00:00-06:00",
+].map((iso) => TT.dropView(priced, at(iso)));
+const overrideOff = TT.dropView(Object.assign({}, priced, { status_override: "last_chance" }), at("2026-12-12T15:00:00-06:00"));
+offLabels.push(overrideOff);
+check(
+  "flag off never renders Last chance",
+  TT.features.last_chance === false && offLabels.every((view) => !/last chance/i.test(JSON.stringify(view))),
+  offLabels.map((view) => view.state + ":" + view.label).join(" | ")
+);
+
+TT.features = { last_chance: true };
+const flagged = TT.dropView(priced, at("2026-12-13T12:00:00-06:00"));
+check("flag on keeps the future state in code", flagged.state === "last_chance" && flagged.price === 36, flagged.state);
+TT.features = { last_chance: false };
 
 console.log("checkout-match: PENDING — Shopify checkout is not wired; G20 asserts the shown price equals drops.json for each state.");
 if (failures.length) {
