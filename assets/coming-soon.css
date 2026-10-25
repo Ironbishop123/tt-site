@@ -8,8 +8,12 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(ellipse 78% 72% at 50% 50%, rgb(255 148 46 / 0.42), rgb(255 148 46 / 0) 74%),
-    linear-gradient(180deg, #12100e 0%, #181410 55%, #1e1612 100%);
+    radial-gradient(ellipse 62% 54% at 50% 50%,
+      rgb(12 8 6 / 0) 0%,
+      rgb(12 8 6 / 0) 44%,
+      rgb(96 30 12 / 0.34) 66%,
+      rgb(12 8 6 / 0) 84%),
+    linear-gradient(180deg, #100e0c 0%, #14110e 55%, #1a1410 100%);
 }
 
 .soon-tee {
@@ -30,12 +34,13 @@
   inset: -12% -8%;
   z-index: 0;
   pointer-events: none;
+  /* Dim through the middle, where the type sits. The brighter stop is the rim. */
   background: radial-gradient(ellipse 50% 50% at 50% 50%,
-    rgb(255 208 96) 0%,
-    rgb(255 162 48) 40%,
-    rgb(255 122 36) 68%,
-    rgb(214 78 22 / 0.7) 84%,
-    rgb(20 12 8 / 0) 100%);
+    rgb(22 8 6 / 0.28) 0%,
+    rgb(22 8 6 / 0.28) 46%,
+    rgb(150 46 14 / 0.82) 66%,
+    rgb(96 28 10 / 0.4) 80%,
+    rgb(12 6 4 / 0) 100%);
 }
 
 .soon-tee picture,
@@ -133,18 +138,22 @@
   .soon-page { background: #2c261f; }
   .soon-stage {
     background:
-      radial-gradient(ellipse 96% 78% at 50% 48%, rgb(255 156 52 / 0.72), rgb(255 140 40 / 0) 72%),
-      linear-gradient(180deg, #2a221c 0%, #32261e 55%, #3a2c22 100%);
+      radial-gradient(ellipse 76% 58% at 50% 52%,
+        rgb(12 8 6 / 0) 0%,
+        rgb(12 8 6 / 0) 38%,
+        rgb(110 34 12 / 0.4) 62%,
+        rgb(12 8 6 / 0) 80%),
+      linear-gradient(180deg, #241c16 0%, #2a221c 55%, #2e261f 100%);
   }
   .soon-copy h1 { font-size: 1.75rem; }
   .soon-tee::before {
     inset: -22% -16%;
     background: radial-gradient(ellipse 50% 50% at 50% 50%,
-      rgb(255 214 110) 0%,
-      rgb(255 170 56) 38%,
-      rgb(255 124 36) 64%,
-      rgb(214 80 22 / 0.75) 82%,
-      rgb(40 18 8 / 0) 100%);
+      rgb(20 8 6 / 0.3) 0%,
+      rgb(20 8 6 / 0.3) 42%,
+      rgb(158 48 14 / 0.88) 64%,
+      rgb(100 30 10 / 0.42) 78%,
+      rgb(12 6 4 / 0) 100%);
   }
   .soon-tee img { filter: brightness(1.7) contrast(1.08); }
 }
