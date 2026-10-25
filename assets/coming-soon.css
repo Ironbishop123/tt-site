@@ -68,27 +68,30 @@
   padding: 10px 16px;
 }
 
-.soon-copy h1,
-.soon-line,
-.soon-back {
-  background: #100e0c;
-  border-radius: 8px;
-}
-
 .soon-copy h1 {
   max-width: 14ch;
-  padding: 8px 12px;
   font-size: clamp(2rem, 1.2rem + 3vw, 4.5rem);
-  text-shadow: 0 2px 18px rgb(15 17 20 / 0.85);
+  color: var(--color-text);
+  text-shadow:
+    0 0 1px #000,
+    0 0 4px #000,
+    0 0 8px #000,
+    0 0 12px rgb(0 0 0 / 0.95),
+    0 2px 12px rgb(0 0 0 / 0.85);
 }
 
 .soon-line {
   max-width: 28ch;
-  padding: 8px 12px;
   font-size: var(--text-step-1);
   line-height: var(--leading-body);
   color: var(--color-text);
-  text-shadow: 0 1px 12px rgb(15 17 20 / 0.9);
+  font-weight: 700;
+  text-shadow:
+    0 0 1px #000,
+    0 0 4px #000,
+    0 0 8px #000,
+    0 0 12px rgb(0 0 0 / 0.95),
+    0 2px 12px rgb(0 0 0 / 0.85);
 }
 
 .soon-cta {
@@ -111,9 +114,14 @@
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding-inline: 12px;
   color: var(--color-text);
   font-weight: 600;
+  text-shadow:
+    0 0 1px #000,
+    0 0 4px #000,
+    0 0 8px #000,
+    0 0 12px rgb(0 0 0 / 0.95),
+    0 2px 12px rgb(0 0 0 / 0.85);
   text-underline-offset: 3px;
 }
 
