@@ -63,6 +63,16 @@
   filter: saturate(1.12) brightness(1.28) contrast(1.06);
 }
 
+/* The photo's own dark field is a hard rectangle over the ember. Fade that field out; leave the glow alone. */
+.soon-tee img {
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 68%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 68%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
 /* Plate sits only behind the words, so the tee and ember glow stay visible around it. */
 .soon-copy {
   position: relative;
