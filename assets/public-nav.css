@@ -1,0 +1,78 @@
+/* Always-visible header. Logo home, then Vault, Artists, and Cart. */
+
+.public-page .nav {
+  flex-wrap: nowrap;
+  column-gap: 8px;
+  min-height: 72px;
+}
+
+.public-page .brand .wordmark {
+  font-size: 15px;
+  letter-spacing: 0.12em;
+}
+
+.public-page .nav-pills ul {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.public-page .nav-pills a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgb(232 100 44 / 0.55);
+  border-radius: 999px;
+  background: rgb(232 100 44 / 0.1);
+  color: var(--color-text);
+  font: 600 14px/1 var(--font-display);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.public-page .nav-pills a[aria-current="page"] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.public-page .brand { flex-shrink: 0; }
+
+@media (max-width: 767px) {
+  .public-page .brand .wordmark {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+  }
+  .public-page .nav-pills a {
+    padding: 0 10px;
+    font-size: 13px;
+  }
+  .public-page .nav-pills ul { gap: 6px; }
+}
+
+@media (max-width: 479px) {
+  .public-page .nav {
+    padding-inline: 12px;
+    column-gap: 6px;
+  }
+  .public-page .nav-pills a { padding: 0 8px; }
+  .public-page .nav-pills ul { gap: 4px; }
+}
+
+/* 13px plus the three pills overflows at 336px and below. Hide the wordmark there instead of shrinking it. Coming soon has no pills, so the wordmark stays. */
+@media (max-width: 336px) {
+  .public-page:not(.soon-page) .brand .wordmark { display: none; }
+}
+
+@media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
+  .soon-page.public-page .nav { min-height: 44px; }
+}
