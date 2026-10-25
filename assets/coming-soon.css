@@ -92,10 +92,12 @@
   content: "";
   position: absolute;
   z-index: -1;
-  inset: 0;
-  border-radius: 18px;
-  background: rgb(15 17 20 / 0.78);
-  box-shadow: 0 0 16px 4px rgb(15 17 20 / 0.45);
+  inset: -22% -10%;
+  pointer-events: none;
+  background: radial-gradient(ellipse 50% 50% at 50% 48%,
+    rgb(15 17 20 / 0.88) 0%,
+    rgb(15 17 20 / 0.8) 70%,
+    rgb(15 17 20 / 0) 92%);
 }
 
 .soon-copy h1 {
