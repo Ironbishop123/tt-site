@@ -1,100 +1,78 @@
-/* Phone and short-landscape menu. Fixed overlay, so the hero does not move. */
+/* Always-visible header. Logo home, then Vault, Artists, and Cart. */
 
-.nav-close { display: none; }
-.nav-sheet { display: contents; }
-
-.nav-x,
-.nav-x::before,
-.nav-x::after {
-  display: block;
-  width: 18px;
-  height: 2px;
-  background: currentColor;
-  position: relative;
-}
-.nav-x { background: transparent; }
-.nav-x::before,
-.nav-x::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-.nav-x::before { transform: rotate(45deg); }
-.nav-x::after { transform: rotate(-45deg); }
-
-html.is-menu-open,
-html.is-menu-open body { overflow: hidden; }
-
-@media (max-width: 767px),
-       (max-height: 480px) and (min-width: 768px) and (orientation: landscape) {
-  html.js .public-page .nav { position: relative; z-index: 60; }
-  html.js .public-page .menu { position: relative; z-index: 62; display: inline-flex; }
-  html.js .public-page .nav-links { display: none; }
-  html.js .public-page .nav-links.is-open {
-    display: flex;
-    position: fixed;
-    inset: 0;
-    z-index: 61;
-    flex-basis: auto;
-    order: 0;
-    width: auto;
-    margin: 0;
-    padding: var(--space-5);
-    align-items: center;
-    justify-content: center;
-    background: rgb(8 9 11 / 0.72);
-    animation: nav-fade 160ms var(--ease-out);
-  }
-  html.js .public-page .nav-links.is-open .nav-sheet {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    position: relative;
-    width: min(100%, 24rem);
-    padding: var(--space-4) var(--space-3) var(--space-3);
-    background: #16181c;
-    border: 1px solid var(--color-line);
-    border-radius: 16px;
-  }
-  html.js .public-page .nav-links.is-open ul {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    width: 100%;
-    padding: 0;
-  }
-  html.js .public-page .nav-links.is-open a {
-    justify-content: center;
-    width: 100%;
-    min-height: 44px;
-    padding: 0 var(--space-4);
-  }
-  html.js .public-page .nav-links.is-open .nav-close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    align-self: flex-end;
-    width: 44px;
-    height: 44px;
-    margin-bottom: var(--space-2);
-    padding: 0;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--color-text);
-  }
+.public-page .nav {
+  flex-wrap: nowrap;
+  column-gap: 8px;
+  min-height: 72px;
 }
 
-@keyframes nav-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.public-page .brand .wordmark {
+  font-size: 15px;
+  letter-spacing: 0.12em;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html.js .public-page .nav-links,
-  html.js .public-page .nav-links.is-open {
-    animation: none;
-    transition: none;
+.public-page .nav-pills ul {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.public-page .nav-pills a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgb(232 100 44 / 0.55);
+  border-radius: 999px;
+  background: rgb(232 100 44 / 0.1);
+  color: var(--color-text);
+  font: 600 14px/1 var(--font-display);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.public-page .nav-pills a[aria-current="page"] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.public-page .brand { flex-shrink: 0; }
+
+@media (max-width: 767px) {
+  .public-page .brand .wordmark {
+    font-size: 13px;
+    letter-spacing: 0.08em;
   }
+  .public-page .nav-pills a {
+    padding: 0 10px;
+    font-size: 13px;
+  }
+  .public-page .nav-pills ul { gap: 6px; }
+}
+
+@media (max-width: 479px) {
+  .public-page .nav {
+    padding-inline: 12px;
+    column-gap: 6px;
+  }
+  .public-page .nav-pills a { padding: 0 8px; }
+  .public-page .nav-pills ul { gap: 4px; }
+}
+
+/* 13px plus the three pills overflows at 336px and below. Hide the wordmark there instead of shrinking it. Coming soon has no pills, so the wordmark stays. */
+@media (max-width: 336px) {
+  .public-page:not(.soon-page) .brand .wordmark { display: none; }
+}
+
+@media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
+  .soon-page.public-page .nav { min-height: 44px; }
 }

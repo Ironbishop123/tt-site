@@ -164,10 +164,27 @@ for (const [name, file] of pages) {
 
 {
   const session = await open(390, "index.html");
-  await session.page.locator(".menu").click();
-  await session.page.screenshot({ path: path.join(outDir, "home_390_menu.png"), fullPage: true });
-  const expanded = await session.page.locator(".menu").getAttribute("aria-expanded");
-  if (expanded !== "true") fail("menu button aria-expanded was not true");
+  await session.page.screenshot({ path: path.join(outDir, "home_390_nav.png"), fullPage: true });
+  const nav = await session.page.evaluate(() => {
+    const menu = document.querySelector(".menu, button[aria-label='Menu'], [aria-controls='site-menu']");
+    const links = [...document.querySelectorAll(".nav-links a")];
+    return {
+      menu: !!menu,
+      labels: links.map((a) => a.textContent.replace(/\s+/g, " ").trim()),
+      heights: links.map((a) => Math.round(a.getBoundingClientRect().height)),
+      widths: links.map((a) => Math.round(a.getBoundingClientRect().width)),
+      visible: links.every((a) => {
+        const box = a.getBoundingClientRect();
+        return box.height > 0 && getComputedStyle(a).visibility !== "hidden";
+      }),
+      rows: new Set(links.map((a) => Math.round(a.getBoundingClientRect().top))).size,
+    };
+  });
+  if (nav.menu) fail("menu button present at 390");
+  if (nav.labels.join(" > ") !== "Vault > Artists > Cart") fail(`inline nav ${nav.labels.join(" > ")}`);
+  if (!nav.visible || nav.rows !== 1 || nav.heights.some((h) => h < 44) || nav.widths.some((w) => w < 44)) {
+    fail(`inline nav targets ${JSON.stringify(nav)}`);
+  }
   await session.page.close();
 }
 
@@ -186,41 +203,22 @@ async function tabNames(page, count) {
 
 {
   const session = await open(1440, "index.html");
-  const names = await tabNames(session.page, 6);
+  const names = await tabNames(session.page, 5);
   report.keyboard.desktop = names;
-  const expected = ["Skip to content", "TEMPERED TEES", "Today's Drop", "Vault", "Artists", "Cart"];
+  const expected = ["Skip to content", "Tempered Tees", "Vault", "Artists", "Cart"];
   if (names.join(" > ") !== expected.join(" > ")) fail(`desktop tab order ${names.join(" > ")}`);
-  const menuVisible = await session.page.locator(".menu").isVisible();
-  if (menuVisible) fail("menu button visible at 1440");
+  const menuCount = await session.page.locator(".menu, button[aria-label='Menu'], [aria-controls='site-menu']").count();
+  if (menuCount !== 0) fail("menu button present at 1440");
   await session.page.close();
 }
 
 {
   const session = await open(390, "index.html");
-  const names = await tabNames(session.page, 4);
+  const names = await tabNames(session.page, 5);
   report.keyboard.phone = names;
-  const expected = ["Skip to content", "TEMPERED TEES", "Cart", "Menu"];
+  const expected = ["Skip to content", "Tempered Tees", "Vault", "Artists", "Cart"];
   if (names.join(" > ") !== expected.join(" > ")) fail(`phone tab order ${names.join(" > ")}`);
-  await session.page.keyboard.press("Enter");
-  const after = await session.page.evaluate(() => {
-    const el = document.activeElement;
-    return {
-      text: (el.textContent || "").replace(/\s+/g, " ").trim(),
-      expanded: document.querySelector(".menu").getAttribute("aria-expanded"),
-    };
-  });
-  report.keyboard.phoneOpen = after;
-  if (after.expanded !== "true" || after.text !== "Today's Drop") fail(`menu open focus ${JSON.stringify(after)}`);
-  await session.page.keyboard.press("Tab");
-  const next = await session.page.evaluate(() => document.activeElement.textContent.replace(/\s+/g, " ").trim());
-  if (next !== "Vault") fail(`menu tab next was ${next}`);
-  await session.page.keyboard.press("Escape");
-  const closed = await session.page.evaluate(() => ({
-    expanded: document.querySelector(".menu").getAttribute("aria-expanded"),
-    label: document.activeElement.getAttribute("aria-label"),
-  }));
-  report.keyboard.phoneEscape = closed;
-  if (closed.expanded !== "false" || closed.label !== "Menu") fail(`escape close ${JSON.stringify(closed)}`);
+  if (names.join(" > ") !== report.keyboard.desktop.join(" > ")) fail("phone tab order differs from desktop");
   await session.page.close();
 }
 

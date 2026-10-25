@@ -72,10 +72,10 @@ h1 {
 .drop-countdown:empty, .drop-price:empty { display: none; }
 .text-link { font-weight: 600; }
 
-/* Header H2: logo left, links and Cart right. Phone: logo, Cart, menu. */
+/* Header: logo left, Vault, Artists, and Cart on one line. */
 .nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   min-height: 72px;
   gap: var(--space-3) var(--space-6);
@@ -84,6 +84,7 @@ h1 {
 .brand {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: var(--space-3);
   margin-right: auto;
   min-height: 44px;
@@ -96,19 +97,35 @@ h1 {
 .brand img { width: 32px; height: 32px; display: block; }
 .nav-links ul {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: var(--space-6);
+  gap: 8px;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .nav-links a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 44px;
   min-height: 44px;
-  color: var(--color-text-muted);
+  padding: 0 14px;
+  border: 1px solid rgb(232 100 44 / 0.55);
+  border-radius: 999px;
+  background: rgb(232 100 44 / 0.1);
+  color: var(--color-text);
+  font: 600 14px/1 var(--font-display);
   text-decoration: none;
-  font-size: 15px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.nav-links a[aria-current="page"] { color: var(--color-text); }
+.nav-links a[aria-current="page"] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
 .cart {
   display: inline-flex;
   align-items: center;
@@ -120,45 +137,21 @@ h1 {
   text-decoration: none;
   white-space: nowrap;
 }
-.menu {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-}
-.menu .bars,
-.menu .bars::before,
-.menu .bars::after {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: currentColor;
-  position: relative;
-}
-.menu .bars::before,
-.menu .bars::after {
-  content: "";
-  position: absolute;
-  left: 0;
-}
-.menu .bars::before { top: -7px; }
-.menu .bars::after { top: 7px; }
-
 @media (max-width: 767px) {
   .nav { column-gap: var(--space-3); }
   .brand span { font-size: 13px; letter-spacing: 0.08em; }
-  .cart { order: 2; padding-inline: var(--space-3); }
-  .menu { order: 3; }
-  .nav-links { flex-basis: 100%; order: 4; }
-  .nav-links ul { flex-direction: column; align-items: stretch; gap: 0; padding-bottom: var(--space-3); }
-  html.js .menu { display: inline-flex; }
-  html.js .nav-links { display: none; }
-  html.js .nav-links.is-open { display: block; }
+  .nav-links a { padding: 0 10px; font-size: 13px; }
+  .nav-links ul { gap: 6px; }
+}
+
+@media (max-width: 479px) {
+  .nav { padding-inline: 12px; column-gap: 6px; }
+  .nav-links a { padding: 0 8px; }
+  .nav-links ul { gap: 4px; }
+}
+
+@media (max-width: 336px) {
+  body:not(.public-page) .brand span { display: none; }
 }
 
 /* Layout slots */
