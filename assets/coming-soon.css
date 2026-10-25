@@ -1,6 +1,5 @@
-/* Coming soon. Splash v7 ember glow, centered behind the copy.
-   The fire band is omitted: it covers the same center as the tee.
-   The tee is a still. No motion to reduce. */
+/* Coming soon. A backlight sits behind the still tee. No motion to reduce.
+   Stack: glow, then the tee, then the text. Nothing blends with the shirt. */
 
 .soon-stage {
   position: relative;
@@ -9,9 +8,12 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(ellipse 55% 48% at 50% 46%, rgb(255 120 36 / 0.42), transparent 68%),
-    radial-gradient(ellipse 28% 24% at 50% 50%, rgb(255 176 64 / 0.28), transparent 70%),
-    linear-gradient(180deg, #0b0c0e 0%, #14110e 55%, #1a120e 100%);
+    radial-gradient(ellipse 62% 54% at 50% 50%,
+      rgb(12 8 6 / 0) 0%,
+      rgb(12 8 6 / 0) 44%,
+      rgb(96 30 12 / 0.34) 66%,
+      rgb(12 8 6 / 0) 84%),
+    linear-gradient(180deg, #100e0c 0%, #14110e 55%, #1a1410 100%);
 }
 
 .soon-tee {
@@ -25,31 +27,20 @@
   pointer-events: none;
 }
 
+/* Solid core, about 1.3× the shirt, fading only outside the silhouette. */
 .soon-tee::before {
   content: "";
   position: absolute;
-  inset: -32%;
+  inset: -12% -8%;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 52% 48% at 50% 50%,
-    rgb(255 148 48 / 0.95) 0%,
-    rgb(232 100 44 / 0.72) 32%,
-    rgb(184 72 24 / 0.4) 55%,
-    rgb(80 22 6 / 0.16) 74%,
-    rgb(15 17 20 / 0) 100%);
-}
-
-.soon-tee::after {
-  content: "";
-  position: absolute;
-  inset: -6%;
-  z-index: 2;
-  pointer-events: none;
-  background: radial-gradient(ellipse 46% 42% at 50% 46%,
-    rgb(255 168 64 / 0.42) 0%,
-    rgb(232 100 44 / 0.18) 48%,
-    rgb(232 100 44 / 0) 72%);
-  mix-blend-mode: screen;
+  /* Dim through the middle, where the type sits. The brighter stop is the rim. */
+  background: radial-gradient(ellipse 50% 50% at 50% 50%,
+    rgb(22 8 6 / 0.28) 0%,
+    rgb(22 8 6 / 0.28) 46%,
+    rgb(150 46 14 / 0.82) 66%,
+    rgb(96 28 10 / 0.4) 80%,
+    rgb(12 6 4 / 0) 100%);
 }
 
 .soon-tee picture,
@@ -60,20 +51,14 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: saturate(1.12) brightness(1.28) contrast(1.06);
 }
 
-/* The photo's own dark field is a hard rectangle over the ember. Fade that field out; leave the glow alone. */
+/* Brightness only. The AVIF and WebP already cut the shirt out; a radial
+   mask here faded the collar and hem and let the backlight through. */
 .soon-tee img {
-  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 68%, transparent 100%);
-  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 68%, transparent 100%);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
+  filter: brightness(1.5) contrast(1.06);
 }
 
-/* Plate sits only behind the words, so the tee and ember glow stay visible around it. */
 .soon-copy {
   position: relative;
   z-index: 2;
@@ -88,22 +73,16 @@
   padding: 10px 16px;
 }
 
-.soon-copy::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -22% -10%;
-  pointer-events: none;
-  background: radial-gradient(ellipse 50% 50% at 50% 48%,
-    rgb(15 17 20 / 0.88) 0%,
-    rgb(15 17 20 / 0.8) 70%,
-    rgb(15 17 20 / 0) 92%);
-}
-
 .soon-copy h1 {
   max-width: 14ch;
   font-size: clamp(2rem, 1.2rem + 3vw, 4.5rem);
-  text-shadow: 0 2px 18px rgb(15 17 20 / 0.85);
+  color: var(--color-text);
+  text-shadow:
+    0 0 1px #000,
+    0 0 4px #000,
+    0 0 8px #000,
+    0 0 12px rgb(0 0 0 / 0.95),
+    0 2px 12px rgb(0 0 0 / 0.85);
 }
 
 .soon-line {
@@ -111,7 +90,13 @@
   font-size: var(--text-step-1);
   line-height: var(--leading-body);
   color: var(--color-text);
-  text-shadow: 0 1px 12px rgb(15 17 20 / 0.9);
+  font-weight: 700;
+  text-shadow:
+    0 0 1px #000,
+    0 0 4px #000,
+    0 0 8px #000,
+    0 0 12px rgb(0 0 0 / 0.95),
+    0 2px 12px rgb(0 0 0 / 0.85);
 }
 
 .soon-cta {
@@ -136,6 +121,12 @@
   min-height: 44px;
   color: var(--color-text);
   font-weight: 600;
+  text-shadow:
+    0 0 1px #000,
+    0 0 4px #000,
+    0 0 8px #000,
+    0 0 12px rgb(0 0 0 / 0.95),
+    0 2px 12px rgb(0 0 0 / 0.85);
   text-underline-offset: 3px;
 }
 
@@ -144,14 +135,27 @@
 }
 
 @media (max-width: 767px) {
+  .soon-page { background: #2c261f; }
+  .soon-stage {
+    background:
+      radial-gradient(ellipse 76% 58% at 50% 52%,
+        rgb(12 8 6 / 0) 0%,
+        rgb(12 8 6 / 0) 38%,
+        rgb(110 34 12 / 0.4) 62%,
+        rgb(12 8 6 / 0) 80%),
+      linear-gradient(180deg, #241c16 0%, #2a221c 55%, #2e261f 100%);
+  }
   .soon-copy h1 { font-size: 1.75rem; }
   .soon-tee::before {
-    background: radial-gradient(ellipse 54% 50% at 50% 48%,
-      rgb(255 156 52 / 1) 0%,
-      rgb(232 90 32 / 0.78) 30%,
-      rgb(184 64 18 / 0.42) 54%,
-      rgb(15 17 20 / 0) 76%);
+    inset: -22% -16%;
+    background: radial-gradient(ellipse 50% 50% at 50% 50%,
+      rgb(20 8 6 / 0.3) 0%,
+      rgb(20 8 6 / 0.3) 42%,
+      rgb(158 48 14 / 0.88) 64%,
+      rgb(100 30 10 / 0.42) 78%,
+      rgb(12 6 4 / 0) 100%);
   }
+  .soon-tee img { filter: brightness(1.7) contrast(1.08); }
 }
 
 @media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
