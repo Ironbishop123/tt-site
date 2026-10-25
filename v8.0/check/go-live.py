@@ -37,6 +37,17 @@ IBF = re.compile(r"iron\s*bishop|\bIBF\b", re.I)
 URL = re.compile(r"https?://", re.I)
 FORBIDDEN_DOM = ("innerHTML", "insertAdjacentHTML", "document.write", "createContextualFragment", "DOMParser")
 H2_NOTE = "Artist SVGs render only via <img src>. An allowlist sanitizer runs at hand-load time."
+# GitHub Pages sends max-age=600 and these pages have no build step.
+# One shared ?v= token busts that cache. When CSS or JS changes, set
+# ASSET_VERSION and the same ?v= on every local stylesheet and script in
+# the public HTML: root index, coming-soon, about, splash-v7, and v8.0.
+ASSET_VERSION = "20261025"
+ASSET_QUERY = f"?v={ASSET_VERSION}"
+STYLE_OR_SCRIPT = re.compile(
+    r"<link\b[^>]*\brel=[\"']stylesheet[\"'][^>]*>|<script\b[^>]*\bsrc=[\"'][^\"']+[\"'][^>]*>",
+    re.I,
+)
+ATTR_URL = re.compile(r"\b(?:href|src)=[\"']([^\"']+)[\"']", re.I)
 
 
 def lin(channel: int) -> float:
@@ -70,6 +81,22 @@ def load_drops_check():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def public_html_pages() -> list[Path]:
+    pages = [REPO / "index.html", REPO / "coming-soon.html", REPO / "about.html"]
+    splash = REPO / "splash-v7"
+    if splash.is_dir():
+        pages.extend(sorted(splash.rglob("*.html")))
+    pages.extend(sorted(path for path in ROOT.rglob("*.html") if "check" not in path.parts))
+    return pages
+
+
+def local_css_js(url: str) -> bool:
+    if url.startswith(("http://", "https://", "//")):
+        return False
+    path = url.split("#", 1)[0].split("?", 1)[0]
+    return path.endswith(".css") or path.endswith(".js")
 
 
 def strip_js_comments(text: str) -> str:
@@ -264,10 +291,22 @@ def main() -> int:
     if "nofollow" in (ROOT / "assets" / "profile.js").read_text(encoding="utf-8") or "ugc" in (ROOT / "assets" / "profile.js").read_text(encoding="utf-8"):
         failures.append("artist links must not add nofollow or ugc")
 
+    for page in public_html_pages():
+        text = page.read_text(encoding="utf-8")
+        rel = page.relative_to(REPO)
+        for tag in STYLE_OR_SCRIPT.findall(text):
+            match = ATTR_URL.search(tag)
+            if match is None:
+                continue
+            url = match.group(1)
+            if local_css_js(url) and ASSET_QUERY not in url:
+                failures.append(f"unversioned local asset {rel}: {url}")
+
     frozen = REPO / "assets" / "splash.css"
     frozen_hits = len(OLD_TOKEN.findall(frozen.read_text(encoding="utf-8"))) if frozen.exists() else 0
 
     print("deploy: v8.0")
+    print("asset version:", ASSET_VERSION)
     print("token sha256:", digest)
     print("old token names in v8.0/assets:", len(asset_hits))
     print("frozen splash.css old token names (not part of this deploy):", frozen_hits)
