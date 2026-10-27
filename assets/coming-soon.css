@@ -169,3 +169,6 @@
   .soon-back { min-height: 44px; }
   .soon-tee { top: 50%; }
 }
+
+/* B10 (v1.8.0 staged): headline on a solid panel. Contrast is measured on the panel, not the glow. */
+.soon-copy h1 { background: #0F1114; padding: 0.12em 0.35em; border-radius: 8px; text-shadow: none; }

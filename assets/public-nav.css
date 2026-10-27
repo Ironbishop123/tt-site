@@ -76,3 +76,9 @@
 @media (max-height: 480px) and (min-width: 480px) and (orientation: landscape) {
   .soon-page.public-page .nav { min-height: 44px; }
 }
+
+/* B9 (v1.8.0 staged): no dead gap above the fire on phones. The hero sizes to its content instead of filling the viewport. */
+@media (max-width: 767px) {
+  .public-page [data-layout="hero"] { min-height: 0; }
+  .public-page [data-layout="hero"] .hero-copy { flex: 0 0 auto; }
+}
