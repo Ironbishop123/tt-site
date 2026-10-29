@@ -1,5 +1,5 @@
-/* Turns the launch form on only after the action's form id is all digits.
-   The placeholder stays disabled, including when this file does not run. */
+/* Leaves the launch form enabled when the action's form id is all digits.
+   A non-numeric id is disabled and cannot submit. */
 (function () {
   var form = document.querySelector("form.notify");
   if (!form) return;

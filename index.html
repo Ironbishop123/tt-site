@@ -49,20 +49,19 @@
     <p class="lead">Tees designed by independent artists. First drops coming soon.</p>
     <p><a class="text-link" href="https://submit.temperedtees.com/">Artists: get your art on a Tempered Tee</a></p>
     <p id="drop-line">Coming soon: one artist's design each day, on sale for 24 hours.</p><!-- item 8: Creative drop_explainer.md Main (21:00, future tense; GK #24) -->
-    <!-- Launch notify: replace the placeholder in the action below with the numeric id from Kit. This is the only edit. The form stays disabled and does not submit until that id is digits. -->
-    <form class="notify" method="post" action="https://app.kit.com/forms/KIT_FORM_ID/subscriptions" aria-label="Get notified at launch" aria-describedby="notify-note notify-status">
-      <fieldset disabled>
+    <!-- Launch notify posts to Kit form 10117707. notify.js leaves these controls enabled because that id is digits. -->
+    <form class="notify" method="post" action="https://app.kit.com/forms/10117707/subscriptions" aria-label="Get notified at launch" aria-describedby="notify-note">
+      <fieldset>
         <div class="notify-field">
           <label for="notify-email">Email</label>
           <div class="notify-row">
-            <input id="notify-email" name="email_address" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com" maxlength="254" disabled>
-            <button type="submit" disabled>Get notified at launch</button>
+            <input id="notify-email" name="email_address" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com" maxlength="254">
+            <button type="submit">Get notified at launch</button>
           </div>
         </div>
       </fieldset>
     </form>
     <p id="notify-note" class="notify-note">We'll only email you about the launch.</p>
-    <p id="notify-status" class="sr-only">This signup cannot be submitted yet.</p>
     <p class="contact-line">Questions: <a href="mailto:hello@temperedtees.com">hello@temperedtees.com</a></p>
   </div>
   <div data-slot="stage"><tt-fire preset="band"></tt-fire></div>
