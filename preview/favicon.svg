@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 864 1100" width="432" height="550"><title>Tempered Tees TT monogram</title><defs><linearGradient id="goldT" gradientUnits="userSpaceOnUse" x1="100" y1="1110" x2="1000" y2="1310"><stop offset="0" stop-color="#B58A48"/><stop offset="0.25" stop-color="#F0D49A"/><stop offset="0.5" stop-color="#C99B5A"/><stop offset="0.75" stop-color="#F6E2B2"/><stop offset="1" stop-color="#B58A48"/></linearGradient><linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="90" y1="260" x2="780" y2="980"><stop offset="0" stop-color="#8A6226"/><stop offset="0.16" stop-color="#E6C486"/><stop offset="0.3" stop-color="#C99B5A"/><stop offset="0.46" stop-color="#FBEBC2"/><stop offset="0.58" stop-color="#BC8B4B"/><stop offset="0.78" stop-color="#DDB574"/><stop offset="1" stop-color="#7C5424"/></linearGradient><linearGradient id="shade" gradientUnits="userSpaceOnUse" x1="0" y1="300" x2="0" y2="880"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#2a1500" stop-opacity=".38"/></linearGradient>
+<filter id="brushed" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+ <feTurbulence type="fractalNoise" baseFrequency="0.22 0.006" numOctaves="3" seed="7" result="n"/>
+ <feColorMatrix in="n" type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" result="ng"/>
+ <feComposite in="SourceGraphic" in2="ng" operator="arithmetic" k1="0" k2="1" k3="0.07" k4="-0.035" result="grain"/>
+ <feComposite in="grain" in2="SourceAlpha" operator="in" result="g2"/>
+ <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="ba"/>
+ <feSpecularLighting in="ba" surfaceScale="5" specularConstant="1.05" specularExponent="26" lighting-color="#FFF3D0" result="sp"><feDistantLight azimuth="235" elevation="48"/></feSpecularLighting>
+ <feComposite in="sp" in2="SourceAlpha" operator="in" result="sp2"/>
+ <feComposite in="g2" in2="sp2" operator="arithmetic" k1="0" k2="1" k3="0.9" k4="0" result="lit"/>
+ <feDropShadow in="lit" dx="0" dy="7" stdDeviation="7" flood-color="#000" flood-opacity=".55"/>
+</filter>
+<filter id="brushedL" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+ <feTurbulence type="fractalNoise" baseFrequency="0.22 0.006" numOctaves="3" seed="7" result="n"/>
+ <feColorMatrix in="n" type="matrix" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 0 1" result="ng"/>
+ <feComposite in="SourceGraphic" in2="ng" operator="arithmetic" k1="0" k2="1" k3="0.07" k4="-0.035" result="grain"/>
+ <feComposite in="grain" in2="SourceAlpha" operator="in" result="g2"/>
+ <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="ba"/>
+ <feSpecularLighting in="ba" surfaceScale="5" specularConstant=".8" specularExponent="26" lighting-color="#FFF3D0" result="sp"><feDistantLight azimuth="235" elevation="48"/></feSpecularLighting>
+ <feComposite in="sp" in2="SourceAlpha" operator="in" result="sp2"/>
+ <feComposite in="g2" in2="sp2" operator="arithmetic" k1="0" k2="1" k3="0.7" k4="0" result="lit"/>
+ <feDropShadow in="lit" dx="0" dy="5" stdDeviation="5" flood-color="#2a1a05" flood-opacity=".3"/>
+</filter>
+<filter id="blur2" x="-300%" y="-10%" width="700%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="blur9" x="-1000%" y="-10%" width="2100%" height="120%"><feGaussianBlur stdDeviation="9"/></filter>
+<filter id="blur30" x="-1000%" y="-10%" width="2100%" height="120%"><feGaussianBlur stdDeviation="32"/></filter>
+<filter id="starglow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="9"/></filter>
+<linearGradient id="bladeg" gradientUnits="userSpaceOnUse" x1="0" y1="181" x2="0" y2="1030">
+ <stop offset="0" stop-color="#D2B07C"/><stop offset=".1" stop-color="#FCE7B6"/><stop offset=".25" stop-color="#FFF1C0"/><stop offset=".7" stop-color="#FFF0B8"/><stop offset=".8" stop-color="#FDD58A"/><stop offset=".9" stop-color="#F7A94A"/><stop offset="1" stop-color="#C98A42"/></linearGradient>
+<filter id="blur3" x="-1500%" y="-5%" width="3100%" height="110%"><feGaussianBlur stdDeviation="3.5"/></filter>
+<filter id="blur6" x="-1500%" y="-5%" width="3100%" height="110%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="blur18" x="-1500%" y="-5%" width="3100%" height="110%"><feGaussianBlur stdDeviation="18"/></filter>
+<linearGradient id="bladegL" gradientUnits="userSpaceOnUse" x1="0" y1="181" x2="0" y2="1030">
+ <stop offset="0" stop-color="#C46A12"/><stop offset=".3" stop-color="#C46A12"/><stop offset=".62" stop-color="#E98A1E"/><stop offset=".9" stop-color="#B9560C"/><stop offset="1" stop-color="#8F4207"/></linearGradient>
+</defs><rect x="402" y="230" width="60" height="760" rx="30" fill="#C2361A" opacity=".22" filter="url(#blur30)"/><path d="M432 181 C434.275 290 438.5 500 438.5 700 C438.5 790 444.0 830 444.0 870 C444.0 940 438.0 985 432 1030 C426.0 985 420.0 940 420.0 870 C420.0 830 425.5 790 425.5 700 C425.5 500 429.725 290 432 181 Z" fill="#C2361A" stroke="#C2361A" stroke-width="36" stroke-linejoin="round" opacity=".26" filter="url(#blur18)"/><path d="M432 181 C434.275 290 438.5 500 438.5 700 C438.5 790 444.0 830 444.0 870 C444.0 940 438.0 985 432 1030 C426.0 985 420.0 940 420.0 870 C420.0 830 425.5 790 425.5 700 C425.5 500 429.725 290 432 181 Z" fill="#FF6A1A" stroke="#FF6A1A" stroke-width="6" stroke-linejoin="round" opacity=".42" filter="url(#blur3)"/><path d="M432 56 Q435 96 472 103 Q435 110 432 151 Q429 110 392 103 Q429 96 432 56 Z" fill="#FFB35A" opacity=".55" filter="url(#starglow)"/><g filter="url(#brushed)"><g fill="url(#gold)"><path d="M110 303 L382 303 L382 326 L343 326 L340 790 L288 872 L298 332 C232 328 178 329 154 337 C118 354 105 385 104 418 L103 314 Q103 303 110 303 Z" /><path d="M110 303 L382 303 L382 326 L343 326 L340 790 L288 872 L298 332 C232 328 178 329 154 337 C118 354 105 385 104 418 L103 314 Q103 303 110 303 Z" transform="translate(864 0) scale(-1 1)" /><path d="M432 56 Q435 96 472 103 Q435 110 432 151 Q429 110 392 103 Q429 96 432 56 Z"/></g><g fill="url(#shade)"><path d="M110 303 L382 303 L382 326 L343 326 L340 790 L288 872 L298 332 C232 328 178 329 154 337 C118 354 105 385 104 418 L103 314 Q103 303 110 303 Z" /><path d="M110 303 L382 303 L382 326 L343 326 L340 790 L288 872 L298 332 C232 328 178 329 154 337 C118 354 105 385 104 418 L103 314 Q103 303 110 303 Z" transform="translate(864 0) scale(-1 1)" /></g></g><path d="M432 181 C434.275 290 438.5 500 438.5 700 C438.5 790 444.0 830 444.0 870 C444.0 940 438.0 985 432 1030 C426.0 985 420.0 940 420.0 870 C420.0 830 425.5 790 425.5 700 C425.5 500 429.725 290 432 181 Z" fill="url(#bladeg)"/><path d="M432 186 L433.4 250 L434.5 560 L432 860 L429.5 560 L430.6 250 Z" fill="#FFFBEA"/></svg>

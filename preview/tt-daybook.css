@@ -1,0 +1,541 @@
+/* Tempered Tees, The Daybook 1.3.0 (Claude, 2026-11-20). Dark gallery stage. Phone first. */
+.ttd { --bg: #0d0c0b; --panel: #161412; --line: #2c2925; --line2: #4a4338; --ink: #efe9df; --muted: #a79f92; --gold: #c9a35a; --gold2: #e2c486;
+  --serif: "TTD Serif", "Cormorant Garamond", Georgia, serif; --sans: "TTD Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(0.22, 0.9, 0.24, 1); --head-h: 56px; --strip-h: 56px; --tabs-h: 60px; --buy-h: 72px;
+  /* the art leaves room for one caption, the frame, one title line and the buy bar */
+  --art-h: max(150px, min(100dvh - var(--head-h) - var(--strip-h) - var(--tabs-h) - var(--buy-h) - 136px, 470px));
+  position: fixed; inset: 0; z-index: 2147483000; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; overflow: clip;
+  background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.ttd *, .ttd *::before, .ttd *::after { box-sizing: border-box; }
+.ttd button, .ttd select, .ttd input { font-family: inherit; }
+.ttd a { color: var(--gold); }
+.ttd :focus-visible { outline: 2px solid var(--gold2); outline-offset: 2px; }
+.ttd-fallback { padding: 40px 24px; font-family: var(--sans); }
+.ttd-fallback h1 { font-family: var(--serif); font-weight: 500; font-size: 36px; margin: 8px 0; }
+.ttd-fb-brand { letter-spacing: 0.2em; color: var(--gold2); }
+.ttd.is-live .ttd-fallback { display: none; }
+
+/* the room's light */
+.ttd-glow { position: absolute; inset: -20%; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; animation: ttd-drift 72s ease-in-out infinite alternate; will-change: transform; }
+.ttd-glow.is-on { opacity: 1; }
+.ttd-glow + .ttd-glow { animation-duration: 86s; animation-direction: alternate-reverse; }
+/* slow smoke: a dark veil and a faint light wisp drift across the room's light. Slower and fainter than the shimmer. */
+.ttd-smoke { position: absolute; inset: -30%; pointer-events: none; will-change: transform;
+  background: radial-gradient(34% 28% at 32% 42%, rgba(0, 0, 0, 0.42), transparent 72%), radial-gradient(30% 24% at 68% 62%, rgba(0, 0, 0, 0.32), transparent 72%), radial-gradient(26% 20% at 55% 30%, rgba(255, 238, 214, 0.035), transparent 70%);
+  animation: ttd-smoke 96s ease-in-out infinite alternate; }
+@keyframes ttd-drift { 0% { transform: translate3d(-4%, -3%, 0) scale(1.02); } 50% { transform: translate3d(3%, 2%, 0) scale(1.08); } 100% { transform: translate3d(-2%, 4%, 0) scale(1.04); } }
+@keyframes ttd-smoke { 0% { transform: translate3d(7%, -5%, 0) rotate(0deg); } 50% { transform: translate3d(-3%, 3%, 0) rotate(5deg); } 100% { transform: translate3d(-7%, 6%, 0) rotate(9deg); } }
+.ttd.is-idle .ttd-glow, .ttd.is-idle .ttd-smoke { animation-play-state: paused; }
+
+/* header */
+.ttd-head { position: relative; z-index: 2; flex: none; height: var(--head-h); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line); }
+.ttd-brand { display: flex; align-items: center; gap: 8px; text-decoration: none; min-height: 44px; }
+.ttd-brand img { width: 34px; height: 34px; mix-blend-mode: screen; }
+.ttd-brand span { font-family: var(--serif); font-weight: 500; font-size: 15px; letter-spacing: 0.2em; color: var(--gold2); white-space: nowrap; }
+.ttd-head-r { display: flex; gap: 6px; }
+.ttd-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 2px; background: transparent; color: var(--ink); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.ttd a.ttd-ghost { color: var(--ink); }
+.ttd-ghost:hover { border-color: var(--gold); }
+.ttd-nav { display: none; }
+
+/* day strip */
+.ttd-strip { position: relative; z-index: 2; flex: none; height: var(--strip-h); display: flex; align-items: center; gap: 2px; padding: 0 6px; border-bottom: 1px solid var(--line); }
+.ttd-day { flex: 1; min-width: 0; min-height: 44px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; transition: color 0.5s ease, border-color 0.5s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ttd-day[aria-current="true"] { color: var(--gold2); border-bottom-color: var(--gold); }
+.ttd-cal { flex: none; width: 44px; height: 44px; padding: 0; color: var(--gold); }
+
+/* the track of days */
+.ttd-wrap { position: relative; z-index: 1; flex: 1; min-height: 0; overflow: hidden; }
+.ttd-track { display: flex; height: 100%; transition: transform 0.9s var(--ease); will-change: transform; }
+.ttd-page { flex: 0 0 100%; width: 100%; height: 100%; position: relative; }
+.ttd-scroll { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 24px 32px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: left; }
+.ttd-page.has-buy .ttd-scroll { padding-bottom: 0; }
+.ttd-col { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 8px; }
+.ttd-soon { margin: auto; }
+.ttd-cap { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+.ttd-cap-top { text-align: center; }
+.ttd-cap-col { display: none; }
+.ttd-frame { position: relative; align-self: center; margin: 6px 0 12px; padding: 9px; background: #1a1816; border: 1px solid #3d362c; box-shadow: 0 28px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(201, 163, 90, 0.12); overflow: hidden; line-height: 0; }
+.ttd-frame img { display: block; width: auto; height: auto; max-width: 100%; max-height: var(--art-h); }
+.ttd-frame.is-empty { width: calc(var(--art-h) * 0.75); height: var(--art-h); }
+.ttd-cloth { position: absolute; inset: 0; background: repeating-linear-gradient(100deg, #2b2723 0, #2b2723 16px, #221f1c 16px, #221f1c 34px); box-shadow: inset 0 -30px 40px rgba(0, 0, 0, 0.5); }
+.ttd-cloth[data-unveil] { transition: transform 1.6s cubic-bezier(0.7, 0, 0.2, 1); }
+.ttd-cloth.is-lift { transform: translateY(-104%); }
+.ttd-covered { position: static; width: min(calc(var(--art-h) * 0.75), 64vw); height: var(--art-h); }
+.ttd-title { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 34px; line-height: 1.08; color: var(--ink); overflow-wrap: anywhere; }
+.ttd-meta { margin: 0; font-size: 13px; color: var(--muted); }
+/* the artist's name: gold serif italic, right under the title (Paul: sell the artist with the art) */
+.ttd-by { margin: 2px 0 0; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 22px; line-height: 1.2; color: var(--muted); }
+.ttd-by span { color: var(--gold2); }
+/* the artist's name is a link to their works in The Archive */
+.ttd-name { display: inline; margin: 0; padding: 0; border: 0; background: none; color: var(--gold2); font: inherit; letter-spacing: inherit; text-align: left; cursor: pointer;
+  text-decoration: underline; text-decoration-color: rgba(201, 163, 90, 0.45); text-decoration-thickness: 1px; text-underline-offset: 0.18em; transition: text-decoration-color 0.3s ease, color 0.3s ease; }
+.ttd-name:hover { color: #f0d9a6; text-decoration-color: var(--gold2); }
+.ttd-artist h3 .ttd-name { color: var(--ink); text-decoration-color: rgba(239, 233, 223, 0.3); }
+.ttd-artist h3 .ttd-name:hover { color: var(--gold2); text-decoration-color: var(--gold2); }
+.ttd-statement { font-size: 15px; line-height: 1.5; color: #c9c1b4; }
+/* The House and Artists: short blocks with a caption */
+.ttd-block { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; max-width: 640px; }
+.ttd-steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; color: var(--ink); }
+.ttd-steps li::marker { color: var(--gold); font-family: var(--serif); }
+.ttd-kit-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ttd-kit-row input { flex: 1 1 200px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 2px; background: var(--panel); color: var(--ink); font-size: 14px; }
+.ttd-kit-row input::placeholder { color: var(--muted); }
+.ttd-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ttd-door-main { width: 100%; min-height: 56px; font-size: 14px; }
+.ttd-doors { display: flex; flex-direction: column; gap: 12px; max-width: 520px; }
+.ttd-door { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 4px; }
+.ttd-dot { flex: none; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(239, 233, 223, 0.55); }
+.ttd-opt[aria-pressed="true"] .ttd-dot { box-shadow: 0 0 0 1px #14110c; }
+.ttd-ital { margin: 6px 0 0; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 19px; line-height: 1.3; color: #d8cfbf; }
+.ttd-p { margin: 0; color: var(--ink); }
+.ttd-artist { border-top: 1px solid var(--line); margin-top: 14px; padding: 18px 0 20px; }
+.ttd-artist h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 27px; line-height: 1.1; }
+/* the buy bar stays at the bottom of the screen while the page scrolls under it */
+.ttd-buy { position: sticky; bottom: 0; z-index: 1; align-self: stretch; margin: auto -24px 0; min-height: var(--buy-h); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bg); border-top: 1px solid #3d362c; }
+.ttd-price { margin: 0; font-family: var(--serif); font-size: 21px; line-height: 1; }
+/* past days: the request bar sits where the buy bar sits on Today, so the button is always whole */
+.ttd-reqbar .ttd-reqc { flex: 1; min-width: 0; max-width: 200px; }
+.ttd-reqbar .ttd-reqc .ttd-segs { margin-top: 0; }
+.ttd-reqbar .ttd-reqc .ttd-p { margin-top: 2px; font-size: 12px; color: var(--muted); }
+.ttd-reqbar .ttd-gold { padding: 0 16px; }
+.ttd-clock { margin: 2px 0 0; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ttd-gold { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border: 0; border-radius: 2px; background: linear-gradient(180deg, #dcb96f, #b58c43); color: #14110c; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.ttd a.ttd-gold { color: #14110c; }
+.ttd-gold[disabled] { background: #3a352d; color: #a79f92; cursor: default; }
+.ttd-sheen::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent); animation: ttd-sheen 3.6s ease-in-out infinite; }
+@keyframes ttd-sheen { 0% { transform: translateX(-120%); } 55%, 100% { transform: translateX(320%); } }
+
+/* request counter */
+.ttd-segs { display: flex; gap: 4px; align-items: center; height: 14px; margin-top: 6px; }
+.ttd-segs i { flex: 1; height: 5px; background: var(--line); transition: background 0.4s ease; }
+.ttd-segs i.is-on { background: var(--gold); }
+.ttd-segs i.is-new { animation: ttd-pulse 0.9s ease; }
+@keyframes ttd-pulse { 0% { transform: scaleY(1); box-shadow: 0 0 0 0 rgba(201, 163, 90, 0.9); } 45% { transform: scaleY(2.4); box-shadow: 0 0 18px 4px rgba(201, 163, 90, 0.7); } 100% { transform: scaleY(1); box-shadow: 0 0 0 0 rgba(201, 163, 90, 0); } }
+.ttd-fine { margin: 0; font-size: 12px; color: var(--muted); }
+
+/* bottom tabs (phone) */
+.ttd-tabs { position: relative; z-index: 4; flex: none; height: calc(var(--tabs-h) + env(safe-area-inset-bottom)); display: flex; border-top: 1px solid var(--line); background: var(--bg); padding-bottom: env(safe-area-inset-bottom); }
+.ttd-tab { flex: 1; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; color: var(--ink); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; cursor: pointer; }
+.ttd a.ttd-tab { color: var(--ink); }
+.ttd-tab[aria-current="true"], .ttd a.ttd-tab[aria-current="true"] { color: var(--gold); }
+
+/* sheets */
+.ttd-sheet { position: absolute; z-index: 3; left: 0; right: 0; top: var(--head-h); bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--gold); padding: 18px 16px 32px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; overscroll-behavior: contain; transform: translateY(105%); visibility: hidden; transition: transform 0.7s var(--ease), visibility 0s linear 0.7s; }
+.ttd-sheet.is-open { transform: none; visibility: visible; transition: transform 0.7s var(--ease), visibility 0s; }
+.ttd-sheet[data-sheet="work"] { z-index: 4; transform: translateX(105%); align-items: center; }
+.ttd-sheet[data-sheet="work"].is-open { transform: none; }
+.ttd-sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; }
+.ttd-h2 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1.1; }
+.ttd-tools { display: flex; flex-direction: column; gap: 10px; }
+.ttd-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.ttd-chip { min-height: 44px; padding: 0 14px; border: 1px solid var(--line2); border-radius: 22px; background: transparent; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.3s ease, color 0.3s ease; }
+.ttd-chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #14110c; }
+.ttd-selects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ttd-selects label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.ttd-reset { align-self: end; }
+.ttd-ghost[disabled] { color: var(--muted); cursor: default; border-color: var(--line); }
+.ttd-strip .ttd-x { margin-left: auto; }
+.ttd-selects select { min-height: 44px; padding: 0 10px; border: 1px solid var(--line2); border-radius: 2px; background: var(--panel); color: var(--ink); font-size: 14px; letter-spacing: 0; text-transform: none; }
+.ttd-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; padding-top: 6px; }
+.ttd-tile { display: flex; flex-direction: column; gap: 5px; padding: 0; border: 0; background: transparent; color: var(--ink); text-align: left; text-decoration: none; cursor: pointer; }
+.ttd a.ttd-tile { color: var(--ink); }
+.ttd-tile img, .ttd-tile .ttd-noimg { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: contain; background: #1a1816; border: 1px solid #3d362c; transition: border-color 0.3s ease, transform 0.5s var(--ease); }
+.ttd-tile:hover img { border-color: var(--gold); transform: translateY(-3px); }
+.ttd-bar { display: block; height: 3px; background: var(--line); }
+.ttd-bar b { display: block; height: 3px; background: var(--gold); transition: width 0.5s ease; }
+.ttd-tile .ttd-tt { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ttd-tile .ttd-tc { font-size: 11px; color: var(--muted); }
+.ttd-more { align-self: center; }
+.ttd-foot { border-top: 1px solid var(--line); margin-top: auto; padding-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+.ttd-foot p { margin: 0; color: var(--muted); font-size: 13px; }
+.ttd-big { margin: 10px 0 0; font-family: var(--serif); font-weight: 500; font-size: 34px; line-height: 1.08; }
+
+/* nothing in a scrolling column may be squeezed */
+.ttd-scroll > *, .ttd-sheet > *, .ttd-acq > * { flex-shrink: 0; }
+
+/* the Acquire page: see the 1.0.6 block at the end of this file */
+.ttd-opt { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 52px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 2px; background: transparent; color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.3s ease; }
+.ttd-opt[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #14110c; }
+.ttd-opt[disabled] { opacity: 0.4; text-decoration: line-through; cursor: default; }
+.ttd-err { margin: 0; color: #f0a48f; font-size: 13px; }
+.ttd-toast { position: absolute; z-index: 8; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom) + 12px); left: 12px; right: 12px; max-width: 480px; margin: 0 auto; padding: 12px 14px; border: 1px solid var(--gold); background: var(--panel); color: var(--ink); font-size: 13px; }
+
+/* the cart page: the same room, a normal scrolling page */
+.ttd.ttd-cart { position: relative; inset: auto; height: auto; min-height: 100dvh; overflow: hidden; z-index: auto; }
+.ttd-cart-main { position: relative; width: 100%; max-width: 760px; margin: 0 auto; padding: 24px 16px 56px; display: flex; flex-direction: column; gap: 16px; }
+.ttd-line { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.ttd-line img, .ttd-line .ttd-noimg { display: block; width: 96px; aspect-ratio: 4 / 5; object-fit: cover; background: #1a1816; border: 1px solid #3d362c; }
+.ttd-line h2 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 22px; line-height: 1.15; overflow-wrap: anywhere; }
+.ttd-line-b { display: flex; flex-direction: column; gap: 6px; }
+.ttd-qty { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ttd-qty span { min-width: 28px; text-align: center; font-variant-numeric: tabular-nums; }
+.ttd-qty .ttd-ghost { min-width: 44px; padding: 0 10px; }
+.ttd-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 4px; }
+.ttd-total .ttd-price { font-size: 32px; }
+.ttd-cart-main .ttd-gold { width: 100%; min-height: 54px; }
+.ttd-cart[aria-busy="true"] .ttd-cart-main { opacity: 0.5; pointer-events: none; }
+
+/* small phone screens: slimmer bars, so the title clears the buy bar */
+@media (max-height: 620px) {
+  .ttd { --head-h: 48px; --strip-h: 46px; --tabs-h: 50px; --buy-h: 60px; }
+  .ttd-brand img { width: 30px; height: 30px; }
+  .ttd-ghost { min-height: 44px; }
+  .ttd-price { font-size: 18px; }
+  .ttd-buy .ttd-gold { min-height: 44px; padding: 0 14px; }
+  .ttd-title { font-size: 28px; }
+  .ttd-by { font-size: 19px; }
+  .ttd-artist h3 { font-size: 22px; }
+  .ttd-scroll { padding-top: 10px; gap: 6px; }
+  .ttd-frame { margin: 4px 0 8px; }
+}
+@media (max-width: 400px) {
+  .ttd-strip { padding: 0 4px; gap: 0; }
+  .ttd-day { font-size: 10.5px; letter-spacing: 0; }
+  .ttd-reqbar .ttd-gold { padding: 0 10px; letter-spacing: 0.04em; font-size: 12px; }
+  .ttd-brand span { font-size: 13px; letter-spacing: 0.16em; }
+}
+@media (min-width: 560px) {
+  .ttd-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ttd-tools { flex-direction: row; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; }
+  .ttd-selects { grid-template-columns: repeat(3, minmax(110px, 170px)) auto; }
+}
+@media (min-width: 840px) { .ttd-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+/* side-by-side pages: a phone on its side, the open Fold on its side, and desktop */
+@media (max-height: 520px) and (min-width: 560px), (min-width: 900px) {
+  .ttd-cap-top { display: none; }
+  .ttd-cap-col { display: block; }
+  .ttd-scroll { display: grid; grid-template-columns: auto minmax(0, 420px); column-gap: 28px; row-gap: 10px; justify-content: center; align-content: start; align-items: start; }
+  .ttd-page.has-buy .ttd-scroll { padding-bottom: 24px; }
+  .ttd-frame { grid-column: 1; grid-row: 1 / span 3; margin: 0; align-self: start; }
+  .ttd-label { grid-column: 2; grid-row: 1; }
+  .ttd-buy { grid-column: 2; grid-row: 2; flex-wrap: wrap; position: static; margin: 0; padding: 10px 0 0; min-height: auto; background: none; border-top: 1px solid var(--line); }
+  .ttd-artist { grid-column: 2; grid-row: 3; margin-top: 0; }
+  .ttd-soon { grid-column: 1 / -1; align-self: center; }
+  .ttd-reqbar { justify-content: flex-start; gap: 10px 16px; }
+  .ttd-reqbar .ttd-reqc { flex: 1 1 100%; max-width: 240px; }
+}
+@media (max-height: 520px) and (min-width: 560px) {
+  .ttd { --head-h: 44px; --strip-h: 40px; --tabs-h: 44px; --art-h: max(140px, calc(100dvh - var(--head-h) - var(--strip-h) - var(--tabs-h) - 44px)); }
+  .ttd-scroll { padding: 10px 20px 16px; }
+  .ttd-day { min-height: 40px; }
+  .ttd-cal { height: 36px; }
+  .ttd-title { font-size: 24px; }
+  .ttd-by { font-size: 18px; }
+  .ttd-artist h3 { font-size: 19px; }
+  .ttd-statement { font-size: 13px; }
+  .ttd-price { font-size: 16px; }
+  .ttd-ital { font-size: 16px; margin-top: 2px; }
+  /* a short screen: the two doors sit side by side, and a past day's request bar stays pinned at the bottom */
+  .ttd-big { font-size: 26px; }
+  .ttd-doors { flex-direction: row; align-items: center; }
+  .ttd-door-main { width: auto; flex: 1; max-width: 360px; }
+  .ttd-door { border-top: 0; padding: 0 0 0 12px; margin: 0; border-left: 1px solid var(--line); }
+  .ttd-reqbar { position: sticky; bottom: 0; z-index: 1; background: var(--bg); padding-bottom: 6px; }
+}
+/* three cards (1.0.3): the title card on the left, the art in the middle, the artist on the right.
+   The open Fold on its side and the PC. The art keeps room for both side cards. */
+@media (max-height: 520px) and (min-width: 820px), (min-width: 900px) and (min-height: 521px) {
+  .ttd { --side: clamp(180px, 26vw, 260px); --gap3: 20px; --pad3: 20px; --art-w: calc(100vw - 2 * var(--side) - 2 * var(--gap3) - 2 * var(--pad3) - 26px); }
+  .ttd-scroll { grid-template-columns: minmax(0, var(--side)) auto minmax(0, var(--side)); grid-template-rows: 1fr auto auto 1fr; column-gap: var(--gap3); row-gap: 0; align-content: stretch; }
+  .ttd-frame img { max-width: var(--art-w); }
+  .ttd-frame { grid-column: 2; grid-row: 1 / -1; align-self: center; }
+  .ttd-label { grid-column: 1; grid-row: 2; }
+  .ttd-buy { grid-column: 1; grid-row: 3; }
+  .ttd-reqbar { position: static; background: none; padding-bottom: 0; }
+  .ttd-artist { grid-column: 3; grid-row: 2 / span 2; align-self: center; margin: 0; border-top: 0; border-left: 1px solid var(--line); padding: 4px 0 4px 20px; }
+  .ttd-soon { grid-row: 1 / -1; }
+}
+
+/* desktop */
+@media (min-width: 900px) and (min-height: 521px) {
+  .ttd { --head-h: 72px; --strip-h: 56px; --tabs-h: 0px; --art-h: calc(100dvh - 250px); font-size: 15px; }
+  .ttd-head { padding: 0 40px; }
+  .ttd-brand img { width: 44px; height: 44px; } .ttd-brand span { font-size: 19px; letter-spacing: 0.22em; }
+  .ttd-nav { display: flex; gap: 8px; }
+  .ttd-nav .ttd-tab { flex: none; min-height: 44px; padding: 0 16px; font-size: 12px; letter-spacing: 0.14em; }
+  .ttd-tabs { display: none; }
+  .ttd-strip { justify-content: center; gap: 12px; }
+  .ttd-day { flex: none; padding: 0 16px; font-size: 12px; }
+  .ttd-sheet { padding: 28px max(40px, calc(50% - 680px)) 48px; }
+  .ttd { --side: clamp(220px, 24vw, 340px); --gap3: clamp(28px, 4vw, 64px); --pad3: 40px; }
+  .ttd-scroll { padding: 28px var(--pad3); }
+  .ttd-page.has-buy .ttd-scroll { padding-bottom: 28px; }
+  .ttd-frame { padding: 12px; }
+  .ttd-label { gap: 10px; }
+  .ttd-buy { padding: 22px 0 0; border-top: 0; justify-content: flex-start; gap: 16px 24px; }
+  .ttd-artist { padding: 8px 0 8px 28px; gap: 10px; }
+  .ttd-artist h3 { font-size: clamp(29px, 2.6vw, 47px); }
+  .ttd-statement { font-size: 16px; }
+  .ttd-title { font-size: clamp(38px, 3.4vw, 62px); }
+  .ttd-by { font-size: clamp(22px, 1.9vw, 30px); }
+  .ttd-ital { font-size: 20px; }
+  .ttd-price { font-size: clamp(20px, 1.7vw, 27px); }
+  .ttd-buy .ttd-gold { min-height: 54px; padding: 0 30px; }
+  .ttd-grid { gap: 26px 22px; }
+  .ttd-tile .ttd-tt { font-size: 14px; }
+  .ttd-sheet[data-sheet="work"] { flex-direction: row; flex-wrap: wrap; align-items: center; align-content: flex-start; justify-content: center; gap: 24px 72px; }
+  .ttd-sheet[data-sheet="work"] .ttd-frame { align-self: auto; }
+  .ttd-big { font-size: 56px; }
+  .ttd-cart-main { padding-top: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ttd *, .ttd *::before, .ttd *::after { animation: none !important; transition-duration: 0.01ms !important; }
+  .ttd-cloth[data-unveil] { display: none; }
+}
+
+/* ===== 1.0.6 ===== */
+/* the Acquire page (item 14): one full page over the room. A large shirt photo, the colours, the sizes, then checkout. */
+.ttd-acq { position: absolute; inset: 0; z-index: 6; background: var(--bg); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column;
+  transform: translateY(100%); visibility: hidden; transition: transform 0.6s var(--ease), visibility 0s linear 0.6s; }
+.ttd-acq.is-open { transform: none; visibility: visible; transition: transform 0.6s var(--ease), visibility 0s; }
+.ttd-acq-bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--head-h); padding: 0 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.ttd-acq-bar .ttd-cap { flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ttd-acq-body { width: 100%; max-width: 560px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 18px; }
+.ttd-acq-photo { position: relative; width: 100%; aspect-ratio: 4 / 5; max-height: 54dvh; background: #1a1816; border: 1px solid #3d362c; box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.ttd-acq-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.ttd-acq-photo .ttd-noimg { width: 100%; height: 100%; }
+.ttd-acq-opts { display: flex; flex-direction: column; gap: 18px; }
+.ttd-acq-head { display: flex; flex-direction: column; gap: 6px; }
+.ttd-acq-head .ttd-title { font-size: 30px; }
+.ttd-acq-head .ttd-by { font-size: 20px; }
+.ttd-acq-head .ttd-price { margin-top: 6px; font-size: 26px; }
+.ttd-acq-g { display: flex; flex-direction: column; gap: 10px; }
+.ttd-cv { color: var(--ink); letter-spacing: 0.06em; }
+.ttd-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.ttd-sw { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; min-width: 72px; min-height: 76px; padding: 8px 6px; border: 1px solid var(--line2); border-radius: 2px; background: transparent; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; transition: border-color 0.3s ease, background 0.3s ease; }
+.ttd-sw:hover { border-color: var(--gold); }
+.ttd-sw[aria-pressed="true"] { border-color: var(--gold); background: rgba(201, 163, 90, 0.12); box-shadow: inset 0 0 0 1px var(--gold); }
+.ttd-sring { position: relative; display: block; width: 34px; height: 34px; }
+.ttd-sdot { display: block; width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(239, 233, 223, 0.55); }
+.ttd-sw[aria-pressed="true"] .ttd-sdot { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--gold2); }
+/* an unavailable colour: grey, a small red circle-slash over it, and no click */
+.ttd-sw.is-off { cursor: not-allowed; color: var(--muted); border-color: var(--line); pointer-events: none; }
+.ttd-sw.is-off .ttd-sdot { filter: grayscale(1); opacity: 0.35; }
+.ttd-slash { position: absolute; right: -7px; top: -7px; width: 20px; height: 20px; background: var(--bg); border-radius: 50%; }
+.ttd-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.ttd-acq-body { padding-bottom: 0; }
+/* the buttons stay at the foot of the screen while the page scrolls, like the buy bar on Today */
+.ttd-acq-go { position: sticky; bottom: 0; z-index: 2; display: flex; gap: 10px; margin: 0 -16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid #3d362c; }
+.ttd-acq-go .ttd-gold { flex: 1; min-width: 0; min-height: 54px; font-size: 14px; }
+.ttd-acq-go .ttd-ghost { flex: none; min-height: 54px; }
+.ttd-acq-go .ttd-ghost[disabled] { display: none; }
+
+/* the Coming back badge (item 20) */
+.ttd-badge { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 4px 0 0; padding: 4px 10px; border: 1px solid var(--gold); border-radius: 2px; background: rgba(201, 163, 90, 0.14); color: var(--gold2); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.4; }
+.ttd-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--gold2); }
+.ttd-badge { white-space: nowrap; }
+.ttd-mcard .ttd-badge { margin-top: 4px; padding: 2px 7px; font-size: 10px; letter-spacing: 0.06em; }
+.ttd-tile .ttd-badge { margin-top: 2px; padding: 2px 6px; font-size: 9.5px; letter-spacing: 0.06em; }
+
+/* Notify (item 19): its own control under the title card */
+.ttd-notify { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.ttd-notify-t { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; }
+.ttd-notify-t input { width: 20px; height: 20px; margin: 0; accent-color: var(--gold); }
+.ttd-notify-t svg, .ttd-notify .ttd-fine svg { flex: none; color: var(--gold); }
+.ttd-notify .ttd-fine { display: flex; align-items: center; gap: 8px; }
+.ttd-notify-f { display: flex; flex-direction: column; gap: 8px; }
+.ttd-notify-f .ttd-fine { display: block; }
+.ttd-notify-f[hidden] { display: none; }
+
+/* Art you just missed (item 11) */
+.ttd-missed { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line); padding: 16px 0 18px; }
+.ttd-missed-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ttd-mcard { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; align-items: start; color: var(--ink); text-decoration: none; }
+.ttd a.ttd-mcard { color: var(--ink); }
+.ttd-mcard img, .ttd-mcard .ttd-noimg { display: block; width: 64px; aspect-ratio: 3 / 4; object-fit: contain; background: #1a1816; border: 1px solid #3d362c; transition: border-color 0.3s ease; }
+.ttd-mcard:hover img { border-color: var(--gold); }
+.ttd-mtx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ttd-mdate { font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+.ttd-mcard .ttd-tt { font-family: var(--serif); font-size: 17px; line-height: 1.15; overflow-wrap: anywhere; }
+.ttd-ma { font-size: 12px; color: var(--muted); }
+.ttd-missed-archive { max-width: none; border-top: 0; padding: 0 0 6px; }
+.ttd-missed-archive .ttd-missed-row { max-width: 640px; }
+/* on side-by-side layouts the Today page has no room for it: it shows at the top of The Archive there */
+@media (max-height: 520px) and (min-width: 560px), (min-width: 900px) { .ttd-missed-today { display: none; } }
+
+/* The Archive: Show only (item 21). A filter chip carries a tick when on, so it reads apart from the sort chips. */
+.ttd-mine { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; }
+.ttd-mine-l { margin-right: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.ttd-filt { display: inline-flex; align-items: center; gap: 6px; }
+.ttd-filt .ttd-chk { display: none; }
+.ttd-chip.ttd-filt[aria-pressed="true"] { background: rgba(201, 163, 90, 0.14); border-color: var(--gold); color: var(--gold2); }
+.ttd-filt[aria-pressed="true"] .ttd-chk { display: block; }
+.ttd-empty { padding: 18px 0; text-align: center; }
+
+/* Artists: the login note with its own Submit button (item 10), and the top sellers (item 9) */
+.ttd-login-note { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 14px; border: 1px solid var(--line2); background: var(--panel); }
+.ttd-login-note[hidden] { display: none; }
+.ttd-chip-plain { display: inline-flex; align-items: center; cursor: default; }
+
+/* side-by-side and desktop: the Acquire page puts the photo on the left and the choices on the right, in one page */
+@media (max-height: 520px) and (min-width: 560px) {
+  .ttd-acq-body { max-width: none; flex-direction: row; align-items: flex-start; gap: 20px; padding: 12px 20px 16px; }
+  .ttd-acq-photo { flex: 0 0 auto; width: min(50%, calc((100dvh - var(--head-h) - 28px) * 0.8)); height: auto; max-height: none; position: sticky; top: calc(var(--head-h) + 12px); }
+  .ttd-acq-opts { flex: 1; min-width: 0; gap: 12px; }
+  .ttd-acq-head .ttd-title { font-size: 24px; }
+  .ttd-acq-head .ttd-by { font-size: 17px; }
+  .ttd-acq-head .ttd-price { font-size: 20px; }
+  .ttd-sw { min-height: 64px; min-width: 64px; padding: 6px; }
+  .ttd-acq-go .ttd-gold, .ttd-acq-go .ttd-ghost { min-height: 48px; }
+  .ttd-acq-go { margin: 0; padding: 10px 0 12px; }
+}
+@media (min-width: 900px) and (min-height: 521px) {
+  .ttd-acq-bar { padding: 0 40px; }
+  .ttd-acq-body { max-width: 1500px; flex: 1; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, 460px); align-items: center; gap: clamp(28px, 4vw, 72px); padding: 28px 40px 40px; }
+  /* 1.0.6.2: the photo never grows wider than its own column (Paul's large screen: it covered the title and the choices) */
+  .ttd-acq-photo { width: min(100%, calc((100dvh - var(--head-h) - 68px) * 0.8)); height: auto; max-height: none; justify-self: center; }
+  .ttd-acq-head .ttd-title { font-size: clamp(34px, 3vw, 52px); }
+  .ttd-acq-head .ttd-by { font-size: clamp(20px, 1.7vw, 26px); }
+  .ttd-acq-head .ttd-price { font-size: clamp(24px, 2vw, 30px); }
+  .ttd-acq-go { position: static; margin: 0; padding: 8px 0 0; border-top: 0; flex-direction: column; }
+  .ttd-acq-go .ttd-ghost { width: 100%; }
+  .ttd-missed-archive .ttd-missed-row { grid-template-columns: repeat(2, minmax(0, 300px)); }
+}
+/* a phone on its side: The Archive's head and tools sit tighter, so the first row of works still starts on screen */
+@media (max-height: 520px) and (min-width: 560px) {
+  .ttd-sheet[data-sheet="archive"] { gap: 6px; padding-top: 8px; }
+  .ttd-sheet[data-sheet="archive"] .ttd-h2 { font-size: 24px; }
+  .ttd-sheet[data-sheet="archive"] .ttd-tools { gap: 6px 16px; }
+  .ttd-sheet[data-sheet="archive"] .ttd-grid { padding-top: 2px; }
+  .ttd-sheet[data-sheet="archive"] .ttd-selects label { flex-direction: row; align-items: center; gap: 6px; }
+  .ttd-sheet[data-sheet="archive"] .ttd-selects { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+  .ttd-sheet[data-sheet="archive"] .ttd-selects select { flex: 1; min-width: 0; }
+}
+
+/* ===== 1.0.7 ===== */
+/* the light and the slow smoke on every page (Paul, Nov 19). The sheets and the Acquire page are clear now. Each sits on a
+   dark shade that holds its own light and smoke, and slides with it, so the two read as one panel. */
+.ttd-shade { position: absolute; z-index: 3; left: 0; right: 0; top: var(--head-h); bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom)); background: var(--bg); overflow: hidden; pointer-events: none;
+  transform: translateY(105%); visibility: hidden; transition: transform 0.7s var(--ease), visibility 0s linear 0.7s; }
+.ttd.has-sheet .ttd-shade[data-shade="sheet"] { transform: none; visibility: visible; transition: transform 0.7s var(--ease), visibility 0s; }
+.ttd-shade .ttd-glow { background: radial-gradient(110% 50% at 50% 12%, rgba(201, 163, 90, 0.10), transparent 62%); }
+.ttd-sheet { background: transparent; }
+/* going from one sheet straight to another: the old one fades as it leaves, so two pages of words never cross */
+.ttd.has-sheet .ttd-sheet:not(.is-open) { opacity: 0; transition: transform 0.7s var(--ease), visibility 0s linear 0.7s, opacity 0.2s ease; }
+.ttd-shade[data-shade="acq"] { top: 0; bottom: 0; z-index: 6; transform: translateY(100%); transition: transform 0.6s var(--ease), visibility 0s linear 0.6s; }
+.ttd.is-acq .ttd-shade[data-shade="acq"] { transform: none; visibility: visible; transition: transform 0.6s var(--ease), visibility 0s; }
+.ttd-acq { background: transparent; }
+/* the spam trap: off screen, out of the tab order, hidden from screen readers. A person never fills it. */
+.ttd-hp { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* a return under review: plain words, no badge */
+.ttd-note { display: block; margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+/* the header mark: the photo's dark ground sinks into the page, so no faint square shows around the gold TT */
+.ttd-brand img { filter: contrast(1.3) brightness(0.9); }
+
+/* ===== 1.0.8 ===== */
+/* "In reserve" (Arthur's item 10): a small quiet tag on every work in The Archive. Never "sold". */
+.ttd-res { display: inline-block; align-self: flex-start; margin: 4px 0 0; padding: 2px 6px; border: 1px solid var(--line2); border-radius: 2px; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; line-height: 1.4; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.ttd-tile .ttd-res { margin-top: 2px; font-size: 9.5px; padding: 1px 5px; }
+.ttd-kit .ttd-fine { margin-top: 8px; }
+
+/* ===== 1.0.9 ===== */
+.ttd-label .ttd-res + .ttd-res { margin-left: 6px; }
+
+/* ===== 1.2.0 ===== */
+/* Privacy, Terms, Contact and Follow are sheets (Paul, Nov 20). They use .ttd-sheet as it is, so the slide, the speed and the
+   top bar are the same as The Archive, The House and Artists. Nothing above this line changed. */
+.ttd-foot a, .ttd-fine a { text-underline-offset: 0.18em; }
+.ttd-sheet[data-sheet="privacy"] > *, .ttd-sheet[data-sheet="terms"] > *, .ttd-sheet[data-sheet="contact"] > *, .ttd-sheet[data-sheet="follow"] > * { width: 100%; }
+/* a policy: Shopify's own text in one readable column */
+.ttd-doc { max-width: 720px; color: #d8cfbf; font-size: 16px; line-height: 1.75; overflow-wrap: anywhere; }
+.ttd-doc > :first-child { margin-top: 0; }
+.ttd-doc h1, .ttd-doc h2, .ttd-doc h3, .ttd-doc h4, .ttd-doc h5, .ttd-doc h6 { margin: 32px 0 10px; font-family: var(--serif); font-weight: 500; font-size: 26px; line-height: 1.2; color: var(--ink); }
+.ttd-doc h1 { font-size: 30px; }
+.ttd-doc p, .ttd-doc ul, .ttd-doc ol { margin: 0 0 14px; }
+.ttd-doc ul, .ttd-doc ol { padding-left: 22px; }
+.ttd-doc li { margin-bottom: 6px; }
+.ttd-doc a { color: var(--gold2); text-decoration-color: rgba(201, 163, 90, 0.5); text-underline-offset: 0.18em; }
+.ttd-doc strong, .ttd-doc b { color: var(--ink); }
+.ttd-doc table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: 0 0 14px; }
+.ttd-doc th, .ttd-doc td { padding: 8px 10px; border: 1px solid var(--line2); text-align: left; vertical-align: top; }
+.ttd-doc img { max-width: 100%; height: auto; }
+/* Contact: Shopify's own form in the Daybook's look */
+.ttd-contact { max-width: 640px; }
+.ttd-form { display: flex; flex-direction: column; gap: 14px; margin: 0; }
+.ttd-form-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.ttd-field { display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.ttd-field input, .ttd-field textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid var(--line2); border-radius: 2px; background: var(--panel); color: var(--ink); font-family: inherit; font-size: 16px; font-weight: 400; letter-spacing: 0; text-transform: none; line-height: 1.5; }
+.ttd-field textarea { min-height: 150px; resize: vertical; }
+.ttd-form .ttd-gold { align-self: flex-start; min-width: 220px; min-height: 54px; }
+.ttd-form-done { margin: 0; padding: 16px; border: 1px solid var(--gold); background: rgba(201, 163, 90, 0.10); color: var(--ink); font-family: var(--serif); font-size: 22px; line-height: 1.3; }
+.ttd-form .ttd-err { padding: 12px 14px; border: 1px solid #f0a48f; }
+.ttd-contact-src[hidden] { display: none; }
+/* Follow: two gold-edged panels. Each holds that site's own preview card, under the Daybook's own heading and button. */
+.ttd-follow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; max-width: 1180px; }
+.ttd-fpanel { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 16px; border: 1px solid #3d362c; background: rgba(22, 20, 18, 0.72); box-shadow: 0 0 0 1px rgba(201, 163, 90, 0.12), 0 24px 50px rgba(0, 0, 0, 0.45); }
+.ttd-fhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--gold); }
+.ttd-fname { margin: 2px 0 0; font-family: var(--serif); font-size: 26px; line-height: 1.1; color: var(--ink); overflow-wrap: anywhere; }
+.ttd-fhead .ttd-gold { flex: none; gap: 8px; min-height: 48px; }
+.ttd-fcard { display: flex; justify-content: center; min-width: 0; }
+.ttd-fcard iframe { display: block; width: 100%; max-width: 600px; height: 460px; border: 0; border-radius: 2px; background: transparent; color-scheme: light; transition: height 0.3s ease; }
+/* TikTok's card does not report its height, so it has a set one (read on the real store, Nov 20: 389 px at 300 wide, 458 px at 600 wide). Instagram's card reports its own. */
+.ttd-fcard iframe[data-card="tiktok"] { height: 462px; }
+@media (max-width: 480px) { .ttd-fcard iframe[data-card="tiktok"] { height: 400px; } }
+@media (min-width: 560px) { .ttd-form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 760px) { .ttd-follow { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+@media (max-width: 400px) { .ttd-fname { font-size: 21px; } .ttd-form .ttd-gold { width: 100%; } }
+@media (min-width: 900px) and (min-height: 521px) { .ttd-fpanel { padding: 22px; } .ttd-fname { font-size: 30px; } }
+
+/* ===== 1.3.0 ===== */
+/* The cart is a sheet too (Paul, Nov 20). It uses .ttd-sheet as it is. Its body is the cart page's own lines, read from /cart. */
+.ttd-cart-body { display: flex; flex-direction: column; gap: 16px; }
+.ttd-cartsheet { width: 100%; max-width: 760px; display: flex; flex-direction: column; gap: 16px; transition: opacity 0.2s ease; }
+.ttd-cartsheet .ttd-gold { width: 100%; min-height: 54px; }
+.ttd-cartsheet[aria-busy="true"] { opacity: 0.5; pointer-events: none; }
+.ttd-cartsheet form { margin: 0; }
+/* the cart page itself: the menu in the top bar, a gold line under it, and the content slides up like a sheet */
+.ttd-cart .ttd-head { border-bottom-color: var(--gold); }
+.ttd-cart .ttd-nav .ttd-tab { color: var(--ink); }
+.ttd-cart-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
+.ttd-cart-foot a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; }
+.ttd a.ttd-cart-foot-a, .ttd .ttd-cart-foot a { color: var(--ink); }
+@keyframes ttd-rise { from { transform: translateY(100vh); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: no-preference) { .ttd-cart .ttd-cart-main { animation: ttd-rise 0.7s var(--ease) backwards; } }
+/* from the width where the top bar shows the menu, the cart page's foot menu is not needed */
+@media (min-width: 900px) and (min-height: 521px) { .ttd-cart-foot { display: none; } }
+
+/* 1.4.0: the Tomorrow page. The artist card uses Today's own card. These rules place the artist's link. 1.4.1: the calendar link is gone; the clock is new. */
+.ttd-tm-more { margin: 4px 0 0; font-size: 14px; }
+.ttd .ttd-tm-more a { display: inline-block; padding: 12px 0; color: var(--gold2); text-decoration: underline; text-underline-offset: 3px; }
+.ttd .ttd-tm-more a:hover { color: #f0d9a6; }
+.ttd-tm-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* 1.4.1: the Tomorrow clock. It sits in the middle of the covered frame and is the one thing to look at on that page (Paul, Nov 21).
+   Its size follows the frame: --tm-w is the covered frame's own width. */
+.ttd-tm-clock { --tm-w: min(calc(var(--art-h) * 0.75), 64vw); position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--tm-w) * 0.04); line-height: 1; text-align: center; background: radial-gradient(closest-side, rgba(13, 12, 11, 0.82), rgba(13, 12, 11, 0.4) 72%, rgba(13, 12, 11, 0)); }
+.ttd-tm-clock p { margin: 0; }
+.ttd-tm-k { font-size: clamp(10px, calc(var(--tm-w) * 0.034), 15px); }
+.ttd-tm-digits { font-family: var(--serif); font-weight: 500; font-size: calc(var(--tm-w) * 0.2); color: var(--ink); white-space: nowrap; font-variant-numeric: lining-nums tabular-nums; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.7); }
+.ttd-tm-digits span { display: inline-block; min-width: 1.02em; text-align: center; }
+.ttd-tm-digits i { font-style: normal; color: var(--gold); padding: 0 0.03em; transition: opacity 0.3s; }
+.ttd-tm-clock.is-tock .ttd-tm-digits i { opacity: 0.35; }
+.ttd-tm-beat { position: relative; width: calc(var(--tm-w) * 0.36); height: 1px; background: var(--line2); }
+.ttd-tm-beat::after { content: ""; position: absolute; top: -3px; left: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); transition: left 0.9s cubic-bezier(0.45, 0, 0.55, 1); }
+.ttd-tm-clock.is-tock .ttd-tm-beat::after { left: calc(100% - 7px); }
+.ttd-tm-at { font-size: clamp(11px, calc(var(--tm-w) * 0.036), 15px); letter-spacing: 0.08em; color: #c9c1b4; }
+.ttd a.ttd-tm-go { color: var(--ink); line-height: 1.2; }
+@media (prefers-reduced-motion: reduce) { .ttd-tm-beat { display: none; } .ttd-tm-clock.is-tock .ttd-tm-digits i { opacity: 1; } }
+.ttd-scroll[tabindex]:focus { outline: none; }
+.ttd-scroll[tabindex]:focus-visible { outline: 1px solid var(--gold); outline-offset: -3px; }
+
+/* ---- 1.5.0: the Acquire page says what the shirt is, and shows a size chart in place ---- */
+.ttd-fit { margin: 0; }
+.ttd-size-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ttd-size-h .ttd-cap { margin: 0; }
+.ttd-chart-btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--gold2); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+.ttd-chart-btn:focus-visible { outline: 2px solid var(--gold2); outline-offset: 2px; }
+.ttd-chart[hidden] { display: none; }
+.ttd-chart table { width: 100%; border-collapse: collapse; font-size: 14px; color: var(--ink); }
+.ttd-chart caption { caption-side: bottom; padding-top: 8px; text-align: left; font-size: 12px; color: var(--muted); }
+.ttd-chart th, .ttd-chart td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; font-weight: 400; }
+.ttd-chart thead th { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.ttd-chart tr.is-sel th, .ttd-chart tr.is-sel td { color: var(--gold2); border-bottom-color: var(--gold); }
+
+/* ---- 1.5.1: the header stays above the Acquire page, as it does above a sheet (Paul, Nov 21). A policy opens inside the Acquire page. ---- */
+.ttd-acq, .ttd-shade[data-shade="acq"] { top: var(--head-h); }
+.ttd-acq { border-top: 1px solid var(--gold); }
+.ttd-acq-pol { width: 100%; max-width: 760px; margin: 0 auto; padding: 24px 16px calc(40px + env(safe-area-inset-bottom)); }
+/* the photo allows for the header above it, so the whole shirt still fits the screen */
+@media (max-height: 520px) and (min-width: 560px) { .ttd-acq-photo { width: min(50%, calc((100dvh - var(--head-h) * 2 - 28px) * 0.8)); } }
+@media (min-width: 900px) and (min-height: 521px) { .ttd-acq-photo { width: min(100%, calc((100dvh - var(--head-h) * 2 - 68px) * 0.8)); } }

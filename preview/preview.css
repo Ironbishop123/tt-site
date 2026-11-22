@@ -1,0 +1,13 @@
+/* Tempered Tees, Preview Showing (Claude, 2026-11-22). Loaded after tt-daybook.css, which is the 1.5.1 file, unchanged. */
+html, body { margin: 0; background: #0d0c0b; }
+.ttd-pv-price { font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold2); }
+.ttd-pv-note { margin-top: 8px; max-width: 46ch; }
+.ttd-pv-mail { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.ttd-pv-art { aspect-ratio: auto; min-height: 220px; }
+.ttd-pv-art img { max-height: 60dvh; }
+.ttd-pv-big { margin: 0; font-size: clamp(26px, 2.6vw, 36px); line-height: 1.15; }
+.ttd-pv-body .ttd-kit { margin-top: 4px; }
+.ttd-pv-found { margin-top: 10px; color: var(--gold2); }
+/* a short screen (a phone on its side): the cap above the title already says Preview, so the tag and the note step aside and the button stays on screen */
+@media (max-height: 520px) { .ttd-pv-tag, .ttd-pv-note { display: none; } }
+@media (min-width: 900px) { .ttd-pv-art img { max-height: calc(100dvh - var(--head-h) * 2 - 68px); } }
